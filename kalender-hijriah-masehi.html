@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Aplikasi Kalender Hijriah dan Masehi: konverter tanggal, penanggalan bulanan, hitung mundur Ramadhan, kalkulator zakat mal & fitrah, serta hisab wukuf penentuan hilal.">
+<title>Kalender Hijriah &amp; Masehi — Konverter, Ramadhan, Zakat &amp; Hisab Hilal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d9b45b' d='M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Marcellus&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#081310;
+  --card:rgba(255,255,255,.045);
+  --card2:rgba(255,255,255,.03);
+  --line:rgba(217,180,91,.22);
+  --line2:rgba(255,255,255,.09);
+  --gold:#d9b45b;
+  --gold2:#f0d9a0;
+  --green:#3ddc97;
+  --text:#f4edda;
+  --muted:#9db4aa;
+  --err:#ffb4a2;
+  --radius:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none !important}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--text);line-height:1.65;min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(1100px 620px at 88% -8%,rgba(61,220,151,.08),transparent 60%),
+    radial-gradient(900px 520px at -8% 22%,rgba(217,180,91,.07),transparent 55%),
+    linear-gradient(180deg,#08130f,#0a1813 55%,#081310);
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23d9b45b' stroke-opacity='.07'%3E%3Crect x='35' y='35' width='50' height='50'/%3E%3Crect x='35' y='35' width='50' height='50' transform='rotate(45 60 60)'/%3E%3Ccircle cx='60' cy='60' r='9'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------- Kerangka aplikasi ---------- */
+.app{position:relative;z-index:1;max-width:760px;margin:0 auto;min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(9,23,18,.72),rgba(8,19,15,.9));
+  border-left:1px solid rgba(217,180,91,.13);border-right:1px solid rgba(217,180,91,.13);
+  box-shadow:0 0 90px rgba(0,0,0,.55)}
+.appbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 18px;background:rgba(8,19,15,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(217,180,91,.16)}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:.94rem;letter-spacing:.01em;min-width:0}
+.brand svg{width:20px;height:20px;flex:none;fill:var(--gold);filter:drop-shadow(0 0 6px rgba(217,180,91,.5))}
+.brand em{font-style:normal;color:var(--gold)}
+.clock-chip{flex:none;display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border:1px solid var(--line);
+  border-radius:999px;background:rgba(217,180,91,.07);font-weight:800;font-size:.78rem;letter-spacing:.03em;color:var(--gold2)}
+.clock-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+.content{flex:1;padding:26px 20px 118px}
+.view{display:none}
+.view.active{display:block;animation:viewIn .45s ease}
+@keyframes viewIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* ---------- Navigasi bawah ---------- */
+.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:45;width:100%;max-width:760px;
+  display:flex;padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+  background:rgba(7,17,13,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid rgba(217,180,91,.18)}
+.bottomnav button{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:0;color:var(--muted);font:inherit;cursor:pointer;padding:7px 2px;border-radius:12px;transition:color .25s}
+.bottomnav button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bottomnav button span{font-size:.64rem;font-weight:700;letter-spacing:.02em}
+.bottomnav button:hover{color:var(--text)}
+.bottomnav button.active{color:var(--gold2)}
+.bottomnav button.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:36px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,#ecd28c,#d9b45b);box-shadow:0 0 14px rgba(217,180,91,.85)}
+
+/* ---------- Tipografi seksi ---------- */
+.kicker{color:var(--gold);letter-spacing:.22em;font-size:.72rem;font-weight:800;text-transform:uppercase}
+h2{font-family:'Marcellus',serif;font-weight:400;font-size:clamp(1.5rem,3vw,2rem);margin:6px 0 8px}
+.lead-sec{color:var(--muted);max-width:640px;margin-bottom:22px;font-size:.95rem}
+.sub-title{font-family:'Marcellus',serif;font-weight:400;font-size:1.22rem;margin:28px 0 12px}
+
+/* ---------- Beranda ---------- */
+.hero{text-align:center;padding-top:8px}
+.bismillah{font-family:'Amiri',serif;font-size:clamp(1.1rem,2.4vw,1.4rem);color:var(--gold2);opacity:.92;margin-bottom:10px}
+h1{font-family:'Marcellus',serif;font-weight:400;font-size:clamp(1.9rem,5.5vw,2.7rem);line-height:1.15}
+h1 .g{color:var(--gold)}
+h1 .e{color:var(--green)}
+.hero .lead{color:var(--muted);max-width:560px;margin:12px auto 0;font-size:.97rem}
+.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px;text-align:left}
+.tcard{position:relative;border:1px solid var(--line2);border-radius:var(--radius);padding:22px 22px 20px;background:var(--card);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow:hidden}
+.tcard.gold{border-color:rgba(217,180,91,.4);background:linear-gradient(150deg,rgba(217,180,91,.10),rgba(255,255,255,.03) 55%)}
+.tcard.green{border-color:rgba(61,220,151,.35);background:linear-gradient(150deg,rgba(61,220,151,.09),rgba(255,255,255,.03) 55%)}
+.tlabel{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.68rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.tcard.gold .tlabel{color:var(--gold2)}
+.tcard.green .tlabel{color:var(--green)}
+.tlabel svg{width:23px;height:23px;opacity:.9}
+.tbig{margin-top:12px;font-family:'Marcellus',serif;font-size:clamp(1.45rem,3.4vw,2.1rem);line-height:1.2}
+.tbig .ty{font-size:.55em;color:var(--gold);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;letter-spacing:.05em}
+.tar{font-family:'Amiri',serif;font-size:1.25rem;color:var(--gold2);margin-top:5px}
+.tsub{margin-top:7px;color:var(--muted);font-size:.86rem;font-weight:600}
+
+/* ---------- Teaser & hitung mundur ---------- */
+.ram-teaser{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;
+  border:1px solid var(--line);border-radius:18px;cursor:pointer;transition:.25s;text-align:left;width:100%;
+  background:linear-gradient(120deg,rgba(217,180,91,.13),rgba(61,220,151,.05));font:inherit;color:inherit}
+.ram-teaser:hover{transform:translateY(-2px);box-shadow:0 14px 30px -14px rgba(217,180,91,.45)}
+.teaser-left{display:flex;gap:12px;align-items:center;min-width:0}
+.teaser-ic{width:42px;height:42px;flex:none;border-radius:12px;background:rgba(217,180,91,.15);display:grid;place-items:center}
+.teaser-ic svg{width:21px;height:21px;fill:var(--gold)}
+.teaser-left b{display:block;font-size:.93rem;line-height:1.3}
+.teaser-left span{font-size:.76rem;color:var(--muted);display:block;margin-top:1px}
+.teaser-count{flex:none;text-align:center;font-family:'Marcellus',serif;font-size:2rem;line-height:1;color:var(--gold2)}
+.teaser-count small{display:block;margin-top:3px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.62rem;color:var(--muted);font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.mini-events{margin-top:14px;border:1px solid var(--line2);border-radius:16px;overflow:hidden;background:var(--card2)}
+.me{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px dashed rgba(255,255,255,.08)}
+.me:last-child{border-bottom:0}
+.me-l b{display:block;font-size:.88rem}
+.me-l span{font-size:.74rem;color:var(--muted)}
+.me-chip{flex:none;font-size:.74rem;font-weight:800;color:#221a06;background:linear-gradient(135deg,#ecd28c,#d9b45b);padding:6px 13px;border-radius:999px;white-space:nowrap}
+.me-chip.today{background:linear-gradient(135deg,#8ef0c5,#3ddc97)}
+
+.cd-hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:24px;padding:30px 22px 24px;text-align:center;
+  background:radial-gradient(620px 240px at 50% -40%,rgba(217,180,91,.24),transparent 65%),linear-gradient(170deg,rgba(217,180,91,.10),rgba(255,255,255,.02) 60%)}
+.cd-hero .big-moon{width:60px;height:60px;margin:0 auto 10px;fill:var(--gold);filter:drop-shadow(0 0 18px rgba(217,180,91,.55))}
+.cd-state{font-size:.72rem;font-weight:800;letter-spacing:.24em;color:var(--gold);text-transform:uppercase}
+.cd-target{font-family:'Marcellus',serif;font-size:clamp(1.2rem,3vw,1.6rem);margin-top:7px}
+.cd-target small{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;color:var(--muted);font-weight:600;margin-top:2px}
+.cd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.cd-box{border:1px solid rgba(217,180,91,.35);border-radius:14px;padding:13px 4px 10px;background:rgba(8,19,15,.55)}
+.cd-box b{display:block;font-size:clamp(1.5rem,4.6vw,2.2rem);font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums;line-height:1.1}
+.cd-box span{font-size:.62rem;font-weight:800;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.cd-note{margin-top:13px;color:var(--muted);font-size:.79rem}
+
+.yr{margin-top:16px;border:1px solid var(--line2);border-radius:18px;padding:18px 20px;background:var(--card)}
+.yr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.86rem;font-weight:700;flex-wrap:wrap}
+.yr-top b{color:var(--gold2)}
+.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.07);margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#3ddc97,#d9b45b);box-shadow:0 0 14px rgba(217,180,91,.5);transition:width 1.2s ease}
+.yr-sub{margin-top:8px;color:var(--muted);font-size:.77rem}
+
+.cdlist{border:1px solid var(--line2);border-radius:18px;overflow:hidden;background:var(--card)}
+.cdrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:1px dashed rgba(255,255,255,.08)}
+.cdrow:last-child{border-bottom:0}
+.cdrow .c-l b{display:block;font-size:.9rem}
+.cdrow .c-l span{font-size:.75rem;color:var(--muted)}
+
+/* ---------- Kartu & form konverter ---------- */
+.card{border:1px solid var(--line2);border-radius:var(--radius);padding:24px;background:var(--card);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.conv-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card h3{display:flex;align-items:center;gap:10px;font-size:1.04rem;font-weight:800;margin-bottom:4px}
+.card h3 .ic{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:rgba(217,180,91,.08)}
+.card h3 .ic svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cnote{color:var(--muted);font-size:.84rem;margin-bottom:14px}
+label{display:block;font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:13px 0 6px}
+input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.05);
+  color:var(--text);font:inherit;font-weight:600;outline:none;transition:.25s}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,180,91,.18)}
+.h-row{display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;width:100%;padding:13px 22px;border:0;border-radius:12px;
+  cursor:pointer;font:inherit;font-weight:800;color:#221a06;background:linear-gradient(135deg,#ecd28c,#d9b45b 60%,#c39b3e);
+  box-shadow:0 8px 22px -8px rgba(217,180,91,.55);transition:.25s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px -8px rgba(217,180,91,.65)}
+.btn:active{transform:translateY(0)}
+.result{margin-top:15px;border:1px dashed var(--line);border-radius:14px;padding:15px 17px;background:rgba(217,180,91,.05)}
+.result .r-big{font-weight:800;font-size:1.13rem;line-height:1.35}
+.result .r-ar{font-family:'Amiri',serif;font-size:1.1rem;color:var(--gold2);margin-top:4px}
+.result .r-sub{color:var(--muted);font-size:.84rem;font-weight:600;margin-top:4px}
+.result.err{border-color:rgba(255,180,162,.45);background:rgba(255,180,162,.06)}
+.result.err .r-big{color:var(--err);font-size:.96rem}
+
+/* ---------- Kalender ---------- */
+.cal-panel{border:1px solid var(--line2);border-radius:var(--radius);padding:22px;background:var(--card);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.cal-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.seg{display:inline-flex;padding:4px;gap:4px;border:1px solid var(--line2);border-radius:999px;background:rgba(255,255,255,.05)}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;font-size:.83rem;padding:7px 16px;border-radius:999px;cursor:pointer;transition:.25s}
+.seg button.active{background:linear-gradient(135deg,#ecd28c,#d9b45b);color:#221a06}
+.cal-title{display:flex;align-items:baseline;gap:10px;font-family:'Marcellus',serif;font-size:clamp(1.2rem,2.6vw,1.6rem)}
+.cal-title .ar{font-family:'Amiri',serif;font-size:1.15rem;color:var(--gold2)}
+.cal-nav{display:flex;gap:8px;align-items:center}
+.ibtn{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.04);
+  cursor:pointer;transition:.25s;color:var(--text)}
+.ibtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ibtn:hover{border-color:var(--gold);color:var(--gold2);transform:translateY(-1px)}
+.ghost{border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--text);border-radius:12px;padding:0 15px;height:38px;
+  font:inherit;font-weight:700;font-size:.82rem;cursor:pointer;transition:.25s}
+.ghost:hover{border-color:var(--green);color:var(--green)}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.dow{margin-top:18px;text-align:center;color:var(--muted);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding-bottom:4px}
+.dow span:first-child{color:var(--gold2)}
+.cell{min-width:0;min-height:78px;border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  padding:8px 5px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:.2s;overflow:hidden}
+.cell:hover{border-color:rgba(217,180,91,.5);transform:translateY(-2px)}
+.cell .d{font-weight:800;font-size:1.02rem;line-height:1.2}
+.cell .sub{font-size:.66rem;line-height:1.15;color:var(--muted);font-weight:600;text-align:center}
+.cell .sub.start{color:var(--gold2);font-weight:800}
+.cell .dot{width:6px;height:6px;margin-top:auto;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(217,180,91,.9)}
+.cell.out{opacity:.32}
+.cell.today{border-color:var(--gold);background:linear-gradient(160deg,rgba(217,180,91,.24),rgba(217,180,91,.06));
+  box-shadow:inset 0 0 0 1px rgba(217,180,91,.45),0 6px 18px -6px rgba(217,180,91,.4)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;color:var(--muted);font-size:.8rem;font-weight:600}
+.legend i{display:inline-block;vertical-align:middle;margin-right:7px}
+.lg-today{width:15px;height:15px;border-radius:5px;background:linear-gradient(160deg,rgba(217,180,91,.5),rgba(217,180,91,.15));border:1px solid var(--gold)}
+.lg-start{color:var(--gold2);font-weight:800}
+.lg-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(217,180,91,.9)}
+
+/* ---------- Daftar tanggal penting ---------- */
+.tl{border:1px solid var(--line2);border-radius:18px;padding:6px 20px;background:var(--card)}
+.trow{display:grid;grid-template-columns:215px 1fr 235px;gap:12px;align-items:center;padding:13px 0;border-bottom:1px dashed rgba(255,255,255,.09)}
+.trow:last-child{border-bottom:0}
+.trow .tdate{font-weight:800;color:var(--gold2);font-size:.9rem}
+.trow .tlab{font-weight:600;font-size:.9rem}
+.trow .tgreg{text-align:right;color:var(--muted);font-weight:600;font-size:.86rem}
+.tnote{margin-top:12px;color:var(--muted);font-size:.8rem}
+
+/* ---------- Info ---------- */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card p{margin-top:11px;color:#dfe8dc;font-size:.93rem}
+.cmp{margin-top:18px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:11px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
+th{color:var(--gold2);font-size:.7rem;text-transform:uppercase;letter-spacing:.12em}
+td:first-child{color:var(--muted);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;width:26%}
+tr:last-child td{border-bottom:0}
+.months{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px}
+.mcard{border:1px solid var(--line2);border-radius:16px;padding:16px;background:var(--card2);transition:.25s}
+.mcard:hover{border-color:var(--line);transform:translateY(-3px)}
+.mcard .mnum{font-size:.68rem;font-weight:800;letter-spacing:.18em;color:var(--muted)}
+.mcard .mar{font-family:'Amiri',serif;font-size:1.5rem;color:var(--gold2);margin-top:3px}
+.mcard .mname{font-weight:800;margin-top:2px;font-size:.95rem}
+.mcard .mnote{font-size:.79rem;color:var(--muted);margin-top:5px;line-height:1.5}
+
+/* ---------- Zakat ---------- */
+.z-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.unit-row{display:grid;grid-template-columns:1fr 100px;gap:8px}
+.z-status{display:inline-flex;align-items:center;gap:8px;margin:2px 0 8px;font-weight:800;font-size:.92rem;padding:9px 15px;border-radius:12px}
+.z-status.wajib{color:#0b2b1d;background:linear-gradient(135deg,#8ef0c5,#3ddc97)}
+.z-status.belum{color:var(--err);border:1px dashed rgba(255,180,162,.55)}
+.z-rows{display:flex;flex-direction:column}
+.z-row{display:flex;justify-content:space-between;gap:14px;font-size:.86rem;font-weight:600;color:#dfe8dc;border-bottom:1px dashed rgba(255,255,255,.07);padding:6px 0}
+.z-row:last-child{border-bottom:0}
+.z-row b{color:var(--gold2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- Hilal ---------- */
+.verdict{display:flex;align-items:flex-start;gap:12px;border-radius:14px;padding:14px 16px;font-weight:700;font-size:.92rem;line-height:1.45;border:1px solid var(--line2);background:rgba(255,255,255,.03)}
+.verdict.ok{border-color:rgba(61,220,151,.5);background:linear-gradient(120deg,rgba(61,220,151,.13),rgba(255,255,255,.02))}
+.verdict.no{border-color:rgba(255,180,162,.5);background:linear-gradient(120deg,rgba(255,180,162,.10),rgba(255,255,255,.02))}
+.v-badge{flex:none;font-size:.6rem;font-weight:900;letter-spacing:.12em;padding:6px 10px;border-radius:8px;color:#221a06;background:linear-gradient(135deg,#ecd28c,#d9b45b);margin-top:1px}
+.verdict.ok .v-badge{background:linear-gradient(135deg,#8ef0c5,#3ddc97)}
+.verdict.no .v-badge{background:linear-gradient(135deg,#ffb4a2,#f87171);color:#3a0d05}
+.sky-wrap{margin-top:16px;border:1px solid var(--line2);border-radius:16px;overflow:hidden;background:#0d1226}
+#skySvg{display:block;width:100%;height:auto}
+#skySvg text{font-family:'Plus Jakarta Sans',sans-serif}
+.hl-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:16px}
+.stat{border:1px solid var(--line2);border-radius:14px;padding:11px 13px;background:rgba(255,255,255,.03)}
+.stat span{display:block;font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat b{display:block;margin-top:3px;font-size:.95rem;color:var(--gold2);font-variant-numeric:tabular-nums;line-height:1.35}
+.crit{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.cchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:999px;padding:8px 14px;font-size:.78rem;font-weight:700;background:rgba(255,255,255,.03)}
+.cchip i{font-style:normal;font-weight:900}
+.cchip.ok{border-color:rgba(61,220,151,.5)}
+.cchip.ok i{color:var(--green)}
+.cchip.no{border-color:rgba(255,180,162,.5)}
+.cchip.no i{color:var(--err)}
+.moonrow{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px}
+.mphase{border:1px solid var(--line2);border-radius:14px;padding:10px 6px 8px;text-align:center;background:rgba(255,255,255,.03);transition:.25s}
+.mphase svg{width:100%;max-width:60px;height:auto;display:block;margin:0 auto}
+.mphase span{display:block;margin-top:7px;font-size:.58rem;font-weight:800;color:var(--muted);letter-spacing:.03em;text-transform:uppercase}
+.mphase.active{border-color:var(--gold);background:rgba(217,180,91,.12)}
+.mphase.active span{color:var(--gold2)}
+.moonmain{display:flex;align-items:center;gap:20px;margin-top:16px;flex-wrap:wrap}
+#moonSvg{width:128px;height:128px;flex:none}
+.mooninfo{flex:1;min-width:210px;color:var(--muted);font-size:.88rem;line-height:1.65}
+.mooninfo b{color:var(--gold2)}
+.mooninfo div{margin-top:4px}
+.hl-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hl-actions .btn{flex:1;min-width:190px}
+.hl-actions .ghost{margin-top:16px;height:47px;padding:0 16px}
+.hl-month{margin-top:12px;font-size:.82rem;color:var(--muted);font-weight:600;line-height:1.5}
+.hl-err{color:var(--err)}
+
+/* ---------- Footer ---------- */
+footer{border-top:1px solid rgba(217,180,91,.14);margin-top:34px;padding:22px 0 6px;text-align:center;color:var(--muted);font-size:.8rem}
+footer b{color:var(--gold2)}
+
+/* ---------- Responsif ---------- */
+@media (max-width:660px){
+  .today-grid,.conv-grid,.info-grid{grid-template-columns:1fr}
+  .trow{grid-template-columns:1fr;gap:2px;padding:12px 0}
+  .trow .tgreg{text-align:left}
+  .brand span{font-size:.86rem}
+}
+@media (max-width:560px){
+  .content{padding:20px 14px 112px}
+  .appbar{padding:11px 14px}
+  .cell{min-height:62px;padding:5px 3px 5px}
+  .cell .d{font-size:.9rem}
+  .cell .sub{font-size:.56rem}
+  .cal-bar{justify-content:center}
+  .cal-title{width:100%;justify-content:center;margin-top:4px}
+  .cal-panel{padding:16px 10px}
+  .dow{font-size:.58rem;letter-spacing:0;padding-bottom:2px}
+  .tl{padding:4px 16px}
+  th,td{padding:9px 7px}
+  .cd-hero{padding:24px 14px 20px}
+  .cd-grid{gap:7px}
+  .me{padding:11px 13px}
+  .cdrow{padding:12px 14px}
+  .z-grid{grid-template-columns:1fr}
+  .unit-row{grid-template-columns:1fr 84px}
+  .moonrow{grid-template-columns:repeat(3,1fr)}
+  .hl-stats{grid-template-columns:1fr 1fr}
+  .hl-actions .btn{min-width:150px}
+}
+@media (max-width:400px){
+  .bottomnav button span{font-size:.56rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="appbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <span>Kalender <em>Hijriah</em> &amp; <em>Masehi</em></span>
+    </div>
+    <div class="clock-chip"><span class="dot"></span><span id="clk">--:--:--</span></div>
+  </header>
+
+  <main class="content" id="content">
+
+    <!-- ============ VIEW: BERANDA ============ -->
+    <section class="view active" id="view-beranda">
+      <div class="hero">
+        <p class="bismillah">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
+        <h1>Kalender <span class="g">Hijriah</span> &amp; <span class="e">Masehi</span></h1>
+        <p class="lead">Konverter tanggal, penanggalan bulanan ganda, hitung mundur Ramadhan, kalkulator zakat, dan hisab penentuan hilal — berbasis kalender Ummul Qura.</p>
+      </div>
+
+      <div class="today-grid">
+        <article class="tcard gold">
+          <div class="tlabel">
+            <span>Hari Ini &mdash; Hijriah</span>
+            <svg viewBox="0 0 24 24" fill="#d9b45b" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </div>
+          <div class="tbig"><span id="hjDate">&mdash;</span> <span class="ty" id="hjYear">&mdash;</span></div>
+          <div class="tar" id="hjAr">&nbsp;</div>
+          <div class="tsub" id="hjSub">&mdash;</div>
+        </article>
+        <article class="tcard green">
+          <div class="tlabel">
+            <span>Hari Ini &mdash; Masehi</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3ddc97" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          </div>
+          <div class="tbig"><span id="msDate">&mdash;</span> <span class="ty" style="color:var(--green)">M</span></div>
+          <div class="tar" style="color:var(--green);opacity:.85" id="msExtra">&nbsp;</div>
+          <div class="tsub" id="msSub">&mdash;</div>
+        </article>
+      </div>
+
+      <button class="ram-teaser" id="teaserRam" type="button" aria-label="Buka hitung mundur Ramadhan">
+        <span class="teaser-left">
+          <span class="teaser-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span>
+          <span>
+            <b id="teaserTitle">Menyambut Bulan Suci Ramadhan</b>
+            <span id="teaserDate">&mdash;</span>
+          </span>
+        </span>
+        <span class="teaser-count"><span id="teaserDays">&mdash;</span><small id="teaserUnit">hari lagi</small></span>
+      </button>
+
+      <div class="mini-events" id="miniEvents"></div>
+    </section>
+
+    <!-- ============ VIEW: KALENDER & KONVERTER ============ -->
+    <section class="view" id="view-kalender">
+      <p class="kicker">Konverter &amp; Penanggalan</p>
+      <h2>Konversi Tanggal &amp; Kalender Bulanan</h2>
+      <p class="lead-sec">Ubah tanggal bolak-balik antara kalender Hijriah dan Masehi (basis Ummul Qura), lalu telusuri penanggalan bulanan ganda — angka besar adalah tanggal kalender aktif, angka kecil di bawahnya padanannya di kalender pasangan.</p>
+
+      <div class="conv-grid">
+        <article class="card">
+          <h3><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>Masehi &rarr; Hijriah</h3>
+          <p class="cnote">Pilih tanggal Masehi, ketahui padanannya dalam kalender Hijriah.</p>
+          <label for="gInput">Tanggal Masehi</label>
+          <input type="date" id="gInput">
+          <button class="btn" id="btnG">Konversi ke Hijriah&nbsp;&rarr;</button>
+          <div class="result" id="resG" hidden></div>
+        </article>
+        <article class="card">
+          <h3><span class="ic"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></span>Hijriah &rarr; Masehi</h3>
+          <p class="cnote">Pilih tanggal, bulan, dan tahun Hijriah, ketahui padanannya dalam kalender Masehi.</p>
+          <div class="h-row">
+            <div>
+              <label for="hDay">Tanggal</label>
+              <select id="hDay"></select>
+            </div>
+            <div>
+              <label for="hMonth">Bulan</label>
+              <select id="hMonth"></select>
+            </div>
+            <div>
+              <label for="hYear">Tahun (H)</label>
+              <input type="number" id="hYear" min="1300" max="1600" step="1">
+            </div>
+          </div>
+          <button class="btn" id="btnH">Konversi ke Masehi&nbsp;&rarr;</button>
+          <div class="result" id="resH" hidden></div>
+        </article>
+      </div>
+
+      <div style="height:26px"></div>
+      <div class="cal-panel">
+        <div class="cal-bar">
+          <div class="seg" role="tablist" aria-label="Pilih mode kalender">
+            <button id="segG" class="active" type="button">Masehi</button>
+            <button id="segH" type="button">Hijriah</button>
+          </div>
+          <div class="cal-title"><span id="calTitle">&mdash;</span><span class="ar" id="calTitleAr"></span></div>
+          <div class="cal-nav">
+            <button class="ghost" id="todayBtn" type="button">Hari Ini</button>
+            <button class="ibtn" id="prevBtn" type="button" aria-label="Bulan sebelumnya"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <button class="ibtn" id="nextBtn" type="button" aria-label="Bulan berikutnya"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div class="dow" aria-hidden="true"><span>Ahad</span><span>Senin</span><span>Selasa</span><span>Rabu</span><span>Kamis</span><span>Jumat</span><span>Sabtu</span></div>
+        <div class="days" id="daysGrid"></div>
+        <div class="legend">
+          <span><i class="lg-today"></i>Hari ini</span>
+          <span><i class="lg-start" style="margin-right:7px">1</i>Awal bulan kalender pasangan</span>
+          <span><i class="lg-dot"></i>Tanggal penting Islam</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: RAMADHAN / HITUNG MUNDUR ============ -->
+    <section class="view" id="view-ramadhan">
+      <p class="kicker">Hitung Mundur</p>
+      <h2>Menyambut Bulan Suci Ramadhan</h2>
+      <p class="lead-sec">Hitung mundur setiap detiknya menuju 1 Ramadhan. Apabila Ramadhan sedang berlangsung, penghitung otomatis beralih menuju hari raya Idulfitri.</p>
+
+      <div class="cd-hero">
+        <svg class="big-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <div class="cd-state" id="cdState">&mdash;</div>
+        <div class="cd-target"><span id="cdTarget">&mdash;</span><small id="cdTargetSub"></small></div>
+        <div class="cd-grid">
+          <div class="cd-box"><b id="cdD">0</b><span>Hari</span></div>
+          <div class="cd-box"><b id="cdH">00</b><span>Jam</span></div>
+          <div class="cd-box"><b id="cdM">00</b><span>Menit</span></div>
+          <div class="cd-box"><b id="cdS">00</b><span>Detik</span></div>
+        </div>
+        <div class="cd-note" id="cdNote"></div>
+      </div>
+
+      <div class="yr">
+        <div class="yr-top"><span>Progres Tahun Hijriah <b id="yrName">&mdash;</b></span><b id="yrPct">&mdash;</b></div>
+        <div class="bar"><i id="yrBar"></i></div>
+        <div class="yr-sub" id="yrSub">&mdash;</div>
+      </div>
+
+      <h3 class="sub-title">Hitung mundur hari besar lainnya</h3>
+      <div class="cdlist" id="cdList"></div>
+      <p class="tnote">* Perhitungan mengikuti kalender Ummul Qura. Penetapan resmi di Indonesia melalui Sidang Isbat dapat berbeda &plusmn;1 hari karena awal bulan ditentukan juga melalui rukyatul hilal.</p>
+
+      <h3 class="sub-title">Tanggal penting tahun <span id="tlYear">&mdash;</span> H</h3>
+      <div class="tl" id="tlList"></div>
+    </section>
+
+    <!-- ============ VIEW: ZAKAT ============ -->
+    <section class="view" id="view-zakat">
+      <p class="kicker">Kalkulator &amp; Konversi Satuan</p>
+      <h2>Zakat Mal &amp; Zakat Fitrah</h2>
+      <p class="lead-sec">Hitung kewajiban zakat sekaligus konversi satuannya — gram, kilogram, liter, dinar, dirham, hingga rupiah. Seluruh perhitungan berjalan lokal di perangkat Anda.</p>
+
+      <article class="card">
+        <h3><span class="ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5.5c0 1.66 3.13 3 7 3s7-1.34 7-3V6.5"/><path d="M5 12v5.5c0 1.66 3.13 3 7 3s7-1.34 7-3V12"/></svg></span>Zakat Mal — 2,5%</h3>
+        <p class="cnote">Wajib atas harta yang mencapai nisab dan telah dimiliki penuh satu tahun (haul). Emas &amp; perak otomatis dihargakan sesuai isian Anda.</p>
+
+        <label>Basis nisab</label>
+        <div class="seg" id="nisSeg" role="tablist" aria-label="Pilih basis nisab">
+          <button id="nisE" class="active" type="button">Emas 85 g</button>
+          <button id="nisP" type="button">Perak 595 g</button>
+        </div>
+
+        <div class="z-grid">
+          <div><label for="zmHargaE">Harga emas (Rp/gram)</label><input type="number" id="zmHargaE" min="0" step="1000" value="1400000"></div>
+          <div><label for="zmHargaP">Harga perak (Rp/gram)</label><input type="number" id="zmHargaP" min="0" step="500" value="15000"></div>
+        </div>
+        <div class="z-grid">
+          <div><label for="zmKas">Kas, tabungan, deposito (Rp)</label><input type="number" id="zmKas" min="0" step="10000" placeholder="0"></div>
+          <div><label for="zmDagang">Barang dagangan &amp; investasi (Rp)</label><input type="number" id="zmDagang" min="0" step="10000" placeholder="0"></div>
+        </div>
+        <div class="z-grid">
+          <div><label for="zmEmas">Emas milik</label><div class="unit-row"><input type="number" id="zmEmas" min="0" step="0.01" placeholder="0"><select id="zmEmasU"><option value="1">gram</option><option value="1000">kilogram</option></select></div></div>
+          <div><label for="zmPerak">Perak milik</label><div class="unit-row"><input type="number" id="zmPerak" min="0" step="0.01" placeholder="0"><select id="zmPerakU"><option value="1">gram</option><option value="1000">kilogram</option></select></div></div>
+        </div>
+        <div class="z-grid">
+          <div><label for="zmPiutang">Piutang lancar (Rp)</label><input type="number" id="zmPiutang" min="0" step="10000" placeholder="0"></div>
+          <div><label for="zmHutang">Hutang jatuh tempo (&minus;Rp)</label><input type="number" id="zmHutang" min="0" step="10000" placeholder="0"></div>
+        </div>
+        <button class="btn" id="btnZMal" type="button">Hitung Zakat Mal</button>
+        <div class="result" id="resZMal" hidden></div>
+      </article>
+
+      <h3 class="sub-title">Zakat fitrah</h3>
+      <article class="card" style="margin-top:0">
+        <h3><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6.5 20c0-4.2 2.3-7 5.5-7s5.5 2.8 5.5 7"/><path d="M12 13V4.5"/><path d="M9 7.5L12 4.5l3 3"/></svg></span>Zakat Fitrah — per jiwa</h3>
+        <p class="cnote">1 jiwa = 1 sha&rsquo; &asymp; 2,5 kg makanan pokok &asymp; 3,1 liter. Boleh diganti uang senilai harga beras.</p>
+        <div class="z-grid">
+          <div><label for="zfJiwa">Jumlah jiwa yang ditanggung</label><input type="number" id="zfJiwa" min="1" step="1" value="1"></div>
+          <div><label for="zfHarga">Harga beras (Rp/kg)</label><input type="number" id="zfHarga" min="0" step="500" value="13000"></div>
+        </div>
+        <button class="btn" id="btnZFit" type="button">Hitung Zakat Fitrah</button>
+        <div class="result" id="resZFit" hidden></div>
+      </article>
+
+      <h3 class="sub-title">Tabel konversi satuan zakat</h3>
+      <article class="card cmp" style="margin-top:0">
+        <table>
+          <thead><tr><th>Satuan</th><th>Nilai setara</th></tr></thead>
+          <tbody>
+            <tr><td>1 dinar (emas)</td><td>4,25 gram emas</td></tr>
+            <tr><td>1 dirham (perak)</td><td>2,975 gram perak</td></tr>
+            <tr><td>Nisab emas</td><td>20 dinar = 85 gram = 0,085 kg</td></tr>
+            <tr><td>Nisab perak</td><td>200 dirham = 595 gram = 0,595 kg</td></tr>
+            <tr><td>Kadar zakat mal</td><td>2,5% (1/40) dari harta</td></tr>
+            <tr><td>1 sha&rsquo;</td><td>&asymp; 3,1 liter &asymp; 2,5 kg makanan pokok</td></tr>
+            <tr><td>Zakat fitrah per jiwa</td><td>1 sha&rsquo; = 2,5 kg = 2.500 gram</td></tr>
+            <tr><td>1 kilogram</td><td>1.000 gram</td></tr>
+          </tbody>
+        </table>
+        <p class="tnote">* Nisab 85 gram emas adalah ketentuan yang umum dipakai di Indonesia; sebagian ulama memakai basis perak (595 gram) yang biasanya bernilai lebih rendah sehingga lebih banyak harta yang tersentuh zakat — pilih sesuai kebijakan lembaga/pendapat yang Anda ikuti.</p>
+      </article>
+    </section>
+
+    <!-- ============ VIEW: HILAL / WUKUF ============ -->
+    <section class="view" id="view-hilal">
+      <p class="kicker">Hisab Wukuf</p>
+      <h2>Penentuan Hilal — Metode Hisab</h2>
+      <p class="lead-sec">Perhitungan sederhana posisi bulan pada saat matahari terbenam: bentuk bulan, ketinggian, dan busur derajat (elongasi) yang ditemukan ke arah barat. Acuan kriteria MABIMS 3&deg; / 6,4&deg;.</p>
+
+      <article class="card">
+        <div class="z-grid">
+          <div><label for="hlDate">Tanggal malam pengamatan</label><input type="date" id="hlDate"></div>
+          <div><label for="hlLoc">Lokasi</label><select id="hlLoc"></select></div>
+        </div>
+        <div class="z-grid" id="hlManual" hidden>
+          <div><label for="hlLat">Lintang (&deg;, + = utara)</label><input type="number" id="hlLat" step="0.0001" value="-5.1477"></div>
+          <div><label for="hlLon">Bujur (&deg;, + = timur)</label><input type="number" id="hlLon" step="0.0001" value="119.4327"></div>
+        </div>
+        <div class="hl-actions">
+          <button class="btn" id="btnHilal" type="button">Hitung Wukuf &amp; Hilal</button>
+          <button class="ghost" id="btnHl29" type="button">Isi tgl 29 bulan ini</button>
+        </div>
+        <div class="hl-month" id="hlMonth"></div>
+      </article>
+
+      <article class="card" id="hlResult" hidden style="margin-top:18px">
+        <div class="verdict" id="hlVerdict"><span class="v-badge" id="hlBadge">&mdash;</span><span id="hlVerdictTxt"></span></div>
+        <div class="sky-wrap">
+          <svg id="skySvg" viewBox="0 0 380 212" role="img" aria-label="Diagram langit barat saat matahari terbenam">
+            <defs>
+              <linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#151031"/>
+                <stop offset=".55" stop-color="#2c1a42"/>
+                <stop offset="1" stop-color="#83402e"/>
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="380" height="174" fill="url(#skyg)"/>
+            <g id="skyGuides"></g>
+            <path id="skyArc" fill="none" stroke="#f0d78c" stroke-width="1.6" stroke-dasharray="5 5" opacity=".85"/>
+            <text id="skyArcT" fill="#f0d78c" font-size="12" font-weight="700" text-anchor="middle"></text>
+            <g id="skySun"><circle r="11" fill="#ffce6b" opacity=".95"/></g>
+            <text id="sunT" fill="#ffd9a0" font-size="10" font-weight="700" text-anchor="middle">Matahari</text>
+            <g id="skyMoon"><circle r="11" fill="#39424e" stroke="rgba(255,255,255,.3)" stroke-width="1"/><path id="skyMoonP" fill="#f7f1dd"/></g>
+            <text id="moonT" fill="#f4edda" font-size="10" font-weight="700" text-anchor="middle">Bulan</text>
+            <rect x="0" y="174" width="380" height="38" fill="#0a130f"/>
+            <line x1="0" y1="174" x2="380" y2="174" stroke="#d9b45b" stroke-width="1.2" opacity=".75"/>
+            <text x="190" y="196" fill="#8fa398" font-size="10" letter-spacing="3" text-anchor="middle" font-weight="700">BARAT — UFUK TEMPAT MATAHARI TERBENAM</text>
+          </svg>
+        </div>
+        <div class="hl-stats" id="hlStats"></div>
+        <div class="crit" id="hlCrit"></div>
+      </article>
+
+      <h3 class="sub-title">Bentuk-bentuk bulan</h3>
+      <article class="card" style="margin-top:0">
+        <p class="cnote" style="margin-bottom:0">Fase bulan muda sejak ijtimaq. Bentuk yang sesuai hasil hisab akan ditandai emas.</p>
+        <div class="moonrow" id="moonRow"></div>
+        <div class="moonmain">
+          <svg id="moonSvg" viewBox="-62 -62 124 124" aria-hidden="true"></svg>
+          <div class="mooninfo" id="moonInfo">Masukkan tanggal lalu tekan <b>Hitung Wukuf &amp; Hilal</b> untuk melihat bentuk bulan, ketinggian, dan busur derajatnya di langit barat.</div>
+        </div>
+      </article>
+
+      <h3 class="sub-title">Kriteria imkan rukyat</h3>
+      <article class="card cmp" style="margin-top:0">
+        <table>
+          <thead><tr><th>Kriteria</th><th>Tinggi bulan</th><th>Busur (elongasi)</th></tr></thead>
+          <tbody>
+            <tr><td>MABIMS (ID&ndash;BN&ndash;MY&ndash;SG)</td><td>&ge; 3&deg;</td><td>&ge; 6,4&deg;</td></tr>
+            <tr><td>OIC / Turki</td><td>&ge; 5&deg;</td><td>&ge; 8&deg;</td></tr>
+            <tr><td>Wujudul hilal klasik</td><td colspan="2">Bulan terbenam setelah matahari &amp; tinggi &ge; 3&deg;</td></tr>
+          </tbody>
+        </table>
+        <p class="tnote">* Hisab sederhana dengan ketelitian sekitar &plusmn;0,2&deg; dan &plusmn;20 menit; seluruh waktu mengikuti zona waktu perangkat. Penetapan resmi awal bulan tetap melalui Sidang Isbat (kombinasi rukyatul hilal dan hisab), sehingga hasil dapat berbeda &plusmn;1 hari dengan kalender Ummul Qura.</p>
+      </article>
+    </section>
+
+    <!-- ============ VIEW: INFO ============ -->
+    <section class="view" id="view-info">
+      <p class="kicker">Mengenal Dua Sistem</p>
+      <h2>Tentang Kalender Hijriah &amp; Masehi</h2>
+      <p class="lead-sec">Keduanya sama-sama terdiri atas 12 bulan, namun berbeda dasar perhitungan, panjang tahun, dan fungsi utamanya dalam kehidupan sehari-hari.</p>
+
+      <div class="info-grid">
+        <article class="card">
+          <h3><span class="ic"><svg viewBox="0 0 24 24"><path d="M20.2 13.5A8.2 8.2 0 1 1 10.5 3.8a6.4 6.4 0 0 0 9.7 9.7z"/></svg></span>Kalender Hijriah</h3>
+          <p>Kalender Hijriah — atau Takwim Hijrah — adalah penanggalan lunar yang ditetapkan resmi pada masa Khalifah Umar bin Khattab (tahun 17 H) dengan menjadikan peristiwa hijrahnya Nabi Muhammad SAW dari Makkah ke Madinah sebagai tonggak tahun pertama. Satu tahun terdiri atas 12 bulan sinodis dengan total 354–355 hari, sekitar 11 hari lebih cepat daripada tahun Masehi; inilah sebab momen ibadah seperti Ramadhan dan Iduladha berpindah musim dari tahun ke tahun. Awal bulan ditentukan melalui terlihatnya hilal (rukyatul hilal) atau perhitungan hisab, yang di Indonesia diputuskan dalam Sidang Isbat. Kalender ini menjadi rujukan seluruh ibadah berwaktu: puasa Ramadhan, zakat fitrah, hari raya, hingga musim haji.</p>
+        </article>
+        <article class="card">
+          <h3><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg></span>Kalender Masehi</h3>
+          <p>Kalender Masehi (Gregorian) adalah penanggalan surya hasil reformasi Paus Gregorius XIII pada tahun 1582 terhadap kalender Julius, dan kini dipakai sebagai standar sipil internasional (ISO 8601). Satu tahun umumnya 365 hari, ditambah satu hari pada 29 Februari setiap tahun kabisat — tahun yang habis dibagi 4, kecuali tahun ratusan yang tidak habis dibagi 400 — sehingga rata-rata 365,2425 hari dan tetap sinkron dengan musim. Penomoran tahunnya berporos pada kelahiran Nabi Isa a.s. Hampir seluruh urusan kemasyarakatan, pendidikan, pemerintahan, dan bisnis di dunia — termasuk Indonesia — mengacu pada kalender ini.</p>
+        </article>
+      </div>
+
+      <div class="card cmp">
+        <h3 style="margin-bottom:8px">Perbandingan Singkat</h3>
+        <table>
+          <thead><tr><th>Aspek</th><th>Kalender Hijriah</th><th>Kalender Masehi</th></tr></thead>
+          <tbody>
+            <tr><td>Dasar perhitungan</td><td>Peredaran Bulan (lunar)</td><td>Peredaran Matahari (solar)</td></tr>
+            <tr><td>Panjang satu tahun</td><td>354&ndash;355 hari</td><td>365&ndash;366 hari</td></tr>
+            <tr><td>Posisi terhadap musim</td><td>Maju &plusmn;11 hari setiap tahun</td><td>Tetap mengikuti musim (lewat tahun kabisat)</td></tr>
+            <tr><td>Tonggak awal (epoch)</td><td>1 Muharam 1 H — Hijrah Nabi SAW (622 M)</td><td>1 Januari 1 M — kelahiran Nabi Isa a.s.</td></tr>
+            <tr><td>Penetapan awal bulan</td><td>Rukyatul hilal &amp; hisab</td><td>Aturan kalender yang tetap</td></tr>
+            <tr><td>Fungsi utama</td><td>Ibadah: puasa, zakat, haji, hari raya</td><td>Sipil: pemerintahan, pendidikan, bisnis</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="months">
+        <div class="mcard"><div class="mnum">BULAN 01</div><div class="mar">مُحَرَّم</div><div class="mname">Muharam</div><div class="mnote">Tahun baru Hijriah; hari Asyura diperingati pada 10 Muharam.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 02</div><div class="mar">صَفَر</div><div class="mname">Safar</div><div class="mnote">Bulan kedua dalam tahun Hijriah, tidak ada ibadah khusus di dalamnya.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 03</div><div class="mar">رَبِيع الأَوَّل</div><div class="mname">Rabiul Awal</div><div class="mnote">Maulid Nabi Muhammad SAW diperingati pada 12 Rabiul Awal.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 04</div><div class="mar">رَبِيع الآخِر</div><div class="mname">Rabiul Akhir</div><div class="mnote">Bulan keempat dalam tahun Hijriah.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 05</div><div class="mar">جُمَادَى الأَوَّل</div><div class="mname">Jumadil Awal</div><div class="mnote">Bulan kelima dalam tahun Hijriah.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 06</div><div class="mar">جُمَادَى الآخِرَة</div><div class="mname">Jumadil Akhir</div><div class="mnote">Bulan keenam dalam tahun Hijriah.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 07</div><div class="mar">رَجَب</div><div class="mname">Rajab</div><div class="mnote">Salah satu bulan haram; peristiwa Isra Mi'raj diperingati 27 Rajab.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 08</div><div class="mar">شَعْبَان</div><div class="mname">Sya'ban</div><div class="mnote">Bulan persiapan menjelang Ramadhan; Nisfu Sya'ban pada 15 Sya'ban.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 09</div><div class="mar">رَمَضَان</div><div class="mname">Ramadhan</div><div class="mnote">Bulan wajib puasa; Al-Qur'an diturunkan (Nuzulul Quran pada 17 Ramadhan).</div></div>
+        <div class="mcard"><div class="mnum">BULAN 10</div><div class="mar">شَوَّال</div><div class="mname">Syawal</div><div class="mnote">Idulfitri dirayakan 1 Syawal; sunnah puasa 6 hari Syawal.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 11</div><div class="mar">ذُو القَعْدَة</div><div class="mname">Dzulqaidah</div><div class="mnote">Salah satu bulan haram (mulharamat) dalam tahun Hijriah.</div></div>
+        <div class="mcard"><div class="mnum">BULAN 12</div><div class="mar">ذُو الحِجَّة</div><div class="mname">Dzulhijjah</div><div class="mnote">Musim haji; Hari Arafah (9) dan Iduladha (10 Dzulhijjah).</div></div>
+      </div>
+    </section>
+
+    <footer>
+      <p><b>Kalender Hijriah &amp; Masehi</b> — konversi Ummul Qura, hitung mundur, kalkulator zakat &amp; hisab wukuf hilal.</p>
+      <p style="margin-top:4px">Penanggalan diperbarui otomatis mengikuti tanggal perangkat Anda &bull; <span id="fYear"></span></p>
+    </footer>
+  </main>
+
+  <nav class="bottomnav" id="bottomnav" aria-label="Navigasi utama">
+    <button type="button" data-view="beranda" class="active">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V20h14V9.5"/></svg><span>Beranda</span>
+    </button>
+    <button type="button" data-view="kalender">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Kalender</span>
+    </button>
+    <button type="button" data-view="ramadhan">
+      <svg viewBox="0 0 24 24"><path d="M20.2 13.5A8.2 8.2 0 1 1 10.5 3.8a6.4 6.4 0 0 0 9.7 9.7z" fill="currentColor" stroke="none"/></svg><span>Ramadhan</span>
+    </button>
+    <button type="button" data-view="zakat">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6.5" rx="7" ry="3"/><path d="M5 6.5v5.5c0 1.66 3.13 3 7 3s7-1.34 7-3V6.5"/><path d="M5 12v5.5c0 1.66 3.13 3 7 3s7-1.34 7-3V12"/></svg><span>Zakat</span>
+    </button>
+    <button type="button" data-view="hilal">
+      <svg viewBox="0 0 24 24"><path d="M17.6 10.6A7.2 7.2 0 1 1 10 3.3a5.6 5.6 0 0 0 7.6 7.3z" fill="currentColor" stroke="none"/><path d="M3 20.5h18"/></svg><span>Hilal</span>
+    </button>
+    <button type="button" data-view="info">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11v5"/></svg><span>Info</span>
+    </button>
+  </nav>
+
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ================= Data ================= */
+var HIJRI_MONTHS = [
+  {n:"Muharam",      ar:"مُحَرَّم"},
+  {n:"Safar",        ar:"صَفَر"},
+  {n:"Rabiul Awal",  ar:"رَبِيع الأَوَّل"},
+  {n:"Rabiul Akhir", ar:"رَبِيع الآخِر"},
+  {n:"Jumadil Awal", ar:"جُمَادَى الأَوَّل"},
+  {n:"Jumadil Akhir",ar:"جُمَادَى الآخِرَة"},
+  {n:"Rajab",        ar:"رَجَب"},
+  {n:"Sya'ban",      ar:"شَعْبَان"},
+  {n:"Ramadhan",     ar:"رَمَضَان"},
+  {n:"Syawal",       ar:"شَوَّال"},
+  {n:"Dzulqaidah",   ar:"ذُو القَعْدَة"},
+  {n:"Dzulhijjah",   ar:"ذُو الحِجَّة"}
+];
+var HARI  = ["Ahad","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+var BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+var KUARTAL = ["I","II","III","IV"];
+
+var HOLY_LIST = [
+  {m:1,  d:1,  label:"Tahun Baru Hijriah"},
+  {m:1,  d:10, label:"Hari Asyura"},
+  {m:3,  d:12, label:"Maulid Nabi Muhammad SAW"},
+  {m:7,  d:27, label:"Isra Mi\u2019raj Nabi Muhammad SAW"},
+  {m:8,  d:15, label:"Nisfu Sya'ban"},
+  {m:9,  d:1,  label:"Awal Ramadhan — mulai berpuasa"},
+  {m:9,  d:17, label:"Nuzulul Quran"},
+  {m:10, d:1,  label:"Idulfitri / Hari Raya Fitrah"},
+  {m:12, d:9,  label:"Hari Arafah (Wukuf di Arafah)"},
+  {m:12, d:10, label:"Iduladha / Hari Raya Kurban"}
+];
+var HOLY_MAP = {};
+HOLY_LIST.forEach(function(x){ if(!x.skip) HOLY_MAP[x.m + "-" + x.d] = x.label; });
+
+/* ================= Util ================= */
+function $(id){ return document.getElementById(id); }
+function p2(n){ return String(n).padStart(2,"0"); }
+function addDays(dt, n){
+  var x = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  x.setDate(x.getDate() + n);
+  return x;
+}
+function sameDay(a, b){
+  return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function isLeap(y){ return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+function fmtGregFull(dt){ return HARI[dt.getDay()] + ", " + dt.getDate() + " " + BULAN[dt.getMonth()] + " " + dt.getFullYear(); }
+function fmtHijriFull(h){ return h.d + " " + HIJRI_MONTHS[h.m - 1].n + " " + h.y + " H"; }
+function midOf(dt){ return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()); }
+
+/* ================= Konversi inti ================= */
+var fmtHijriNum = null, fmtArFull = null, fmtArDate = null;
+try {
+  fmtHijriNum = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", { day:"numeric", month:"numeric", year:"numeric" });
+  fmtArFull   = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+  fmtArDate   = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { day:"numeric", month:"long", year:"numeric" });
+} catch(e){}
+
+function gregToJDN(y, m, d){
+  var a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
+  return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+}
+function jdnToGregDate(j){
+  var a = j + 32044;
+  var b = Math.floor((4 * a + 3) / 146097);
+  var c = a - Math.floor(146097 * b / 4);
+  var dd = Math.floor((4 * c + 3) / 1461);
+  var e = c - Math.floor(1461 * dd / 4);
+  var mm = Math.floor((5 * e + 2) / 153);
+  var day = e - Math.floor((153 * mm + 2) / 5) + 1;
+  var month = mm + 3 - 12 * Math.floor(mm / 10);
+  var year = 100 * b + dd - 4800 + Math.floor(mm / 10);
+  return new Date(year, month - 1, day);
+}
+function tabHijriToJDN(y, m, d){
+  return Math.floor((11 * y + 3) / 30) + 354 * y + 30 * m - Math.floor((m - 1) / 2) + d + 1948440 - 385;
+}
+function jdnToTabHijri(j){
+  var l = j - 1948440 + 10632;
+  var n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  var jj = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719) + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+  l = l - Math.floor((30 - jj) / 15) * Math.floor((17719 * jj) / 50) - Math.floor(jj / 16) * Math.floor((15238 * jj) / 43) + 29;
+  var m = Math.floor((24 * l) / 709);
+  var d = l - Math.floor((709 * m) / 24);
+  return { d: d, m: m, y: 30 * n + jj - 30 };
+}
+function getHijri(dt){
+  if (fmtHijriNum){
+    try {
+      var p = fmtHijriNum.formatToParts(dt), d, m, y;
+      for (var i = 0; i < p.length; i++){
+        if (p[i].type === "day") d = parseInt(p[i].value, 10);
+        else if (p[i].type === "month") m = parseInt(p[i].value, 10);
+        else if (p[i].type === "year") y = parseInt(p[i].value, 10);
+      }
+      if (d && m && y) return { d: d, m: m, y: y };
+    } catch(e){}
+  }
+  return jdnToTabHijri(gregToJDN(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()));
+}
+function hijriToGreg(hy, hm, hd){
+  if (!(hy >= 1 && hy <= 3000) || hm < 1 || hm > 12 || hd < 1 || hd > 30) return null;
+  var dt = jdnToGregDate(tabHijriToJDN(hy, hm, hd));
+  for (var i = 0; i < 10; i++){
+    var h = getHijri(dt);
+    if (h.y === hy && h.m === hm && h.d === hd) return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    var cur = h.y * 10000 + h.m * 100 + h.d;
+    var tgt = hy * 10000 + hm * 100 + hd;
+    dt = addDays(dt, tgt > cur ? 1 : -1);
+  }
+  return null;
+}
+function arabicFull(dt){ try { return fmtArFull ? fmtArFull.format(dt) : ""; } catch(e){ return ""; } }
+function arabicDate(dt){ try { return fmtArDate ? fmtArDate.format(dt) : ""; } catch(e){ return ""; } }
+
+/* Kejadian Hijriah berikutnya sejak hari ini (untuk hitung mundur) */
+function nextHijriDate(m, d){
+  var h = getHijri(new Date());
+  var y = h.y;
+  var dt = hijriToGreg(y, m, d);
+  if (!dt || dt < midOf(new Date())) dt = hijriToGreg(y + 1, m, d);
+  return dt;
+}
+
+/* ================= Navigasi tab aplikasi ================= */
+function showView(name){
+  var views = document.querySelectorAll(".view");
+  for (var i = 0; i < views.length; i++){
+    views[i].classList.toggle("active", views[i].id === "view-" + name);
+  }
+  var btns = document.querySelectorAll(".bottomnav button");
+  for (var j = 0; j < btns.length; j++){
+    btns[j].classList.toggle("active", btns[j].getAttribute("data-view") === name);
+  }
+  window.scrollTo(0, 0);
+}
+
+/* ================= Hero: tanggal hari ini & jam ================= */
+function tzLabel(){
+  var o = -new Date().getTimezoneOffset() / 60;
+  return o === 7 ? "WIB" : o === 8 ? "WITA" : o === 9 ? "WIT" : "UTC" + (o >= 0 ? "+" : "") + o;
+}
+function updateHero(){
+  var now = new Date();
+  var h = getHijri(now);
+  $("hjDate").textContent = h.d + " " + HIJRI_MONTHS[h.m - 1].n;
+  $("hjYear").textContent = h.y + " H";
+  $("hjAr").textContent = arabicDate(now);
+  $("hjSub").textContent = HARI[now.getDay()] + " • Bulan ke-" + h.m + " dari 12 bulan Hijriah";
+
+  var doy = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 1)) / 864e5) + 1;
+  var total = isLeap(now.getFullYear()) ? 366 : 365;
+  $("msDate").textContent = now.getDate() + " " + BULAN[now.getMonth()] + " " + now.getFullYear();
+  $("msExtra").textContent = "Hari ke-" + doy + " dari " + total + " hari • Kuartal " + KUARTAL[Math.floor(now.getMonth() / 3)];
+  $("msSub").textContent = HARI[now.getDay()] + " • Tahun " + (isLeap(now.getFullYear()) ? "kabisat" : "biasa");
+}
+function tick(){
+  var n = new Date();
+  $("clk").textContent = p2(n.getHours()) + ":" + p2(n.getMinutes()) + ":" + p2(n.getSeconds()) + " " + tzLabel();
+}
+
+/* ================= Hitung mundur Ramadhan & hari besar ================= */
+function ramadhanState(){
+  var now = new Date();
+  var h = getHijri(now);
+  if (h.m === 9){
+    return { state:"during", hy:h.y, day:h.d, len:null, target:hijriToGreg(h.y, 10, 1) };
+  }
+  var ty = h.m < 9 ? h.y : h.y + 1;
+  return { state:"before", hy:ty, target:hijriToGreg(ty, 9, 1) };
+}
+function tickCountdown(){
+  var st = ramadhanState();
+  var now = new Date();
+  if (!st.target) return;
+  var diff = st.target.getTime() - now.getTime();
+  var s = Math.max(0, Math.floor(diff / 1000));
+  var d  = Math.floor(s / 86400);
+  var hh = Math.floor((s % 86400) / 3600);
+  var mm = Math.floor((s % 3600) / 60);
+  var ss = s % 60;
+  /* hitungan kalender utk teaser & catatan (konsisten dgn daftar hari besar) */
+  var calDays = Math.max(0, Math.round((midOf(st.target) - midOf(now)) / 864e5));
+
+  if (st.state === "during"){
+    $("cdState").textContent = "Ramadhan " + st.hy + " H sedang berlangsung";
+    $("cdTarget").textContent = "Hari ke-" + st.day + " Ramadhan — menuju Idulfitri";
+    $("cdTargetSub").textContent = st.target ? "1 Syawal " + st.hy + " H • " + fmtGregFull(st.target) + " M" : "";
+    $("cdNote").textContent = "Selamat menjalankan ibadah puasa. Semoga diterima dan diberkahi.";
+    $("teaserTitle").textContent = "Ramadhan " + st.hy + " H sedang berlangsung";
+    $("teaserDate").textContent = "Hari ke-" + st.day + " • menuju Idulfitri " + st.hy + " H";
+    $("teaserDays").textContent = calDays;
+    $("teaserUnit").textContent = calDays === 0 ? "Hari ini!" : "hari lagi";
+  } else {
+    $("cdState").textContent = "Menuju 1 Ramadhan " + st.hy + " H";
+    $("cdTarget").textContent = "Bulan Suci Ramadhan " + st.hy + " H";
+    $("cdTargetSub").textContent = "1 Ramadhan " + st.hy + " H • " + fmtGregFull(st.target) + " M";
+    $("cdNote").textContent = calDays > 0
+      ? "Tersisa " + calDays + " hari — mari mempersiapkan diri menyambut kedatangan bulan suci."
+      : "Bulan Suci Ramadhan telah tiba!";
+    $("teaserTitle").textContent = "Menyambut Bulan Suci Ramadhan";
+    $("teaserDate").textContent = "1 Ramadhan " + st.hy + " H • " + fmtGregFull(st.target) + " M";
+    $("teaserDays").textContent = calDays;
+    $("teaserUnit").textContent = calDays === 0 ? "Hari ini!" : "hari lagi";
+  }
+  $("cdD").textContent = d;
+  $("cdH").textContent = p2(hh);
+  $("cdM").textContent = p2(mm);
+  $("cdS").textContent = p2(ss);
+}
+
+function renderYearProgress(){
+  var h = getHijri(new Date());
+  var start = hijriToGreg(h.y, 1, 1);
+  var next  = hijriToGreg(h.y + 1, 1, 1);
+  if (!start || !next) return;
+  var total = Math.round((next - start) / 864e5);
+  var elapsed = Math.round((midOf(new Date()) - start) / 864e5) + 1;
+  var pct = Math.min(100, Math.max(0, Math.round(elapsed / total * 100)));
+  $("yrName").textContent = h.y + " H";
+  $("yrPct").textContent = pct + "%";
+  $("yrSub").textContent = "Hari ke-" + elapsed + " dari " + total + " hari tahun Hijriah — " + fmtGregFull(start) + " s.d. " + fmtGregFull(addDays(next, -1));
+  setTimeout(function(){ $("yrBar").style.width = pct + "%"; }, 250);
+}
+
+function renderCdList(limit, mountId, withGreg){
+  var items = [];
+  HOLY_LIST.forEach(function(x){
+    if (x.skip) return;
+    var dt = nextHijriDate(x.m, x.d);
+    if (!dt) return;
+    var h = getHijri(dt);
+    var days = Math.round((midOf(dt) - midOf(new Date())) / 864e5);
+    items.push({ m:x.m, d:x.d, label:x.label, dt:dt, h:h, days:days });
+  });
+  items.sort(function(a, b){ return a.dt - b.dt; });
+  var box = $(mountId);
+  box.innerHTML = "";
+  items.slice(0, limit).forEach(function(it){
+    var chip = it.days === 0 ? "Hari ini!" : it.days === 1 ? "Besok!" : it.days + " hari lagi";
+    var row = document.createElement("div");
+    row.className = mountId === "miniEvents" ? "me" : "cdrow";
+    var l = document.createElement("div");
+    l.className = mountId === "miniEvents" ? "me-l" : "c-l";
+    var b = document.createElement("b");
+    b.textContent = it.label;
+    var sp = document.createElement("span");
+    sp.textContent = withGreg
+      ? it.d + " " + HIJRI_MONTHS[it.m - 1].n + " " + it.h.y + " H • " + fmtGregFull(it.dt) + " M"
+      : fmtGregFull(it.dt) + " M";
+    l.appendChild(b); l.appendChild(sp);
+    var c = document.createElement("span");
+    c.className = "me-chip" + (it.days <= 1 ? " today" : "");
+    c.textContent = chip;
+    row.appendChild(l); row.appendChild(c);
+    box.appendChild(row);
+  });
+}
+
+/* ================= Konverter ================= */
+function setResult(el, ok, big, ar, sub){
+  el.hidden = false;
+  el.classList.toggle("err", !ok);
+  el.innerHTML = '<div class="r-big"></div>' + (ar ? '<div class="r-ar"></div>' : "") + (sub ? '<div class="r-sub"></div>' : "");
+  el.querySelector(".r-big").textContent = big;
+  if (ar){
+    var a = el.querySelector(".r-ar");
+    if (a) a.textContent = ar;
+  }
+  if (sub){
+    var s = el.querySelector(".r-sub");
+    if (s) s.textContent = sub;
+  }
+}
+function convG(){
+  var v = $("gInput").value;
+  if (!v){ $("resG").hidden = true; return; }
+  var t = v.split("-");
+  var dt = new Date(+t[0], +t[1] - 1, +t[2]);
+  if (isNaN(dt.getTime())){ setResult($("resG"), false, "Tanggal tidak valid.", "", ""); return; }
+  var h = getHijri(dt);
+  setResult($("resG"), true, fmtHijriFull(h), arabicFull(dt), fmtGregFull(dt) + " M");
+}
+function convH(){
+  var hd = +$("hDay").value, hm = +$("hMonth").value, hy = +$("hYear").value;
+  if (!hy || hy < 1300 || hy > 1600){ setResult($("resH"), false, "Isi tahun Hijriah antara 1300–1600 H.", "", ""); return; }
+  var dt = hijriToGreg(hy, hm, hd);
+  if (!dt){
+    setResult($("resH"), false, "Tanggal tidak valid — " + HIJRI_MONTHS[hm - 1].n + " " + hy + " H kemungkinan hanya 29 hari. Pilih tanggal 1–29.", "", "");
+    return;
+  }
+  var h = getHijri(dt);
+  setResult($("resH"), true, fmtGregFull(dt) + " M", arabicFull(dt), "Padanan: " + fmtHijriFull(h));
+}
+
+/* ================= Kalender bulanan ================= */
+var mode = "g";          /* "g" = Masehi, "h" = Hijriah */
+var gy, gm, hy, hm;      /* gm 0-11, hm 1-12 */
+var todayMid = new Date();
+
+function monthName(){
+  return mode === "g" ? (BULAN[gm] + " " + gy) : (HIJRI_MONTHS[hm - 1].n + " " + hy + " H");
+}
+function makeCell(dateObj, mainText, subText, isStart, out, isToday, holy){
+  var c = document.createElement("div");
+  c.className = "cell" + (out ? " out" : "") + (isToday ? " today" : "");
+  if (holy) c.title = holy + " • " + fmtGregFull(dateObj) + " M • " + fmtHijriFull(getHijri(dateObj));
+  else c.title = fmtGregFull(dateObj) + " M • " + fmtHijriFull(getHijri(dateObj));
+
+  var d = document.createElement("span"); d.className = "d"; d.textContent = mainText;
+  var s = document.createElement("span"); s.className = "sub" + (isStart ? " start" : ""); s.textContent = subText;
+  c.appendChild(d); c.appendChild(s);
+  if (holy){ var dot = document.createElement("span"); dot.className = "dot"; c.appendChild(dot); }
+  return c;
+}
+function renderG(){
+  var first = new Date(gy, gm, 1);
+  var start = first.getDay();
+  var dim = new Date(gy, gm + 1, 0).getDate();
+  var total = Math.ceil((start + dim) / 7) * 7;
+  var grid = $("daysGrid");
+  for (var i = 0; i < total; i++){
+    var cd = new Date(gy, gm, i - start + 1);
+    var out = cd.getMonth() !== gm || cd.getFullYear() !== gy;
+    var h = getHijri(cd);
+    var isStart = h.d === 1;
+    var holy = HOLY_MAP[h.m + "-" + h.d];
+    grid.appendChild(makeCell(cd, String(cd.getDate()),
+      isStart ? HIJRI_MONTHS[h.m - 1].n : String(h.d),
+      isStart, out, sameDay(cd, todayMid), holy));
+  }
+}
+function renderH(){
+  var g1 = hijriToGreg(hy, hm, 1);
+  var grid = $("daysGrid");
+  if (!g1){
+    var e = document.createElement("div");
+    e.style.cssText = "grid-column:1/-1;color:var(--err);font-weight:700;padding:18px;text-align:center";
+    e.textContent = "Tidak dapat menghitung bulan ini.";
+    grid.appendChild(e);
+    return;
+  }
+  var cells = [], dt = g1;
+  for (var k = 0; k < 35; k++){
+    var h = getHijri(dt);
+    if (h.y !== hy || h.m !== hm) break;
+    cells.push({ dt: dt, h: h });
+    dt = addDays(dt, 1);
+  }
+  var start = g1.getDay();
+  var total = Math.ceil((start + cells.length) / 7) * 7;
+  for (var i = 0; i < total; i++){
+    var idx = i - start;
+    var item = cells[idx];
+    var cd = addDays(g1, idx);
+    var out = !item;
+    var hh = item ? item.h : getHijri(cd);
+    var isStart = cd.getDate() === 1;
+    var holy = HOLY_MAP[hh.m + "-" + hh.d];
+    grid.appendChild(makeCell(cd, String(hh.d), cd.getDate() + " " + BULAN_ABBR[cd.getMonth()],
+      isStart, out, sameDay(cd, todayMid), holy));
+  }
+}
+var BULAN_ABBR = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+function render(){
+  $("calTitle").textContent = monthName();
+  $("calTitleAr").textContent = mode === "h" ? HIJRI_MONTHS[hm - 1].ar : "";
+  var grid = $("daysGrid");
+  grid.innerHTML = "";
+  if (mode === "g") renderG(); else renderH();
+}
+function shift(n){
+  if (mode === "g"){
+    var t = new Date(gy, gm + n, 1);
+    gy = t.getFullYear(); gm = t.getMonth();
+  } else {
+    hm += n;
+    while (hm > 12){ hm -= 12; hy++; }
+    while (hm < 1){ hm += 12; hy--; }
+  }
+  render();
+}
+function goToday(){
+  var now = new Date();
+  gy = now.getFullYear(); gm = now.getMonth();
+  var h = getHijri(now);
+  hy = h.y; hm = h.m;
+  render();
+}
+function switchMode(m){
+  if (mode === m) return;
+  mode = m;
+  if (mode === "h"){
+    var mid = new Date(gy, gm, 15);
+    var h = getHijri(mid);
+    hy = h.y; hm = h.m;
+  } else {
+    var g1 = hijriToGreg(hy, hm, 1);
+    if (g1){ gy = g1.getFullYear(); gm = g1.getMonth(); }
+  }
+  $("segG").classList.toggle("active", mode === "g");
+  $("segH").classList.toggle("active", mode === "h");
+  render();
+}
+
+/* ================= Tanggal penting (daftar penuh) ================= */
+function renderTL(){
+  var now = new Date();
+  var y = getHijri(now).y;
+  $("tlYear").textContent = y;
+  var box = $("tlList");
+  box.innerHTML = "";
+  HOLY_LIST.forEach(function(x){
+    if (x.skip) return;
+    var dt = hijriToGreg(y, x.m, x.d);
+    var row = document.createElement("div");
+    row.className = "trow";
+    var l = document.createElement("div");
+    l.innerHTML = '<span class="tdate"></span>';
+    l.querySelector(".tdate").textContent = x.d + " " + HIJRI_MONTHS[x.m - 1].n + " " + y + " H";
+    var mid = document.createElement("div");
+    mid.className = "tlab";
+    mid.textContent = x.label;
+    var r = document.createElement("div");
+    r.className = "tgreg";
+    r.textContent = dt ? fmtGregFull(dt) + " M" : "—";
+    row.appendChild(l); row.appendChild(mid); row.appendChild(r);
+    box.appendChild(row);
+  });
+}
+
+/* ================= Zakat: kalkulator & konversi satuan ================= */
+var nisabMode = "e";
+function num(id){
+  var v = parseFloat($(id).value);
+  return (isFinite(v) && v > 0) ? v : 0;
+}
+function fmtRp(n){ return "Rp " + Math.round(n).toLocaleString("id-ID"); }
+function fmtNum(n, dec){
+  var d = (dec === undefined) ? 2 : dec;
+  return n.toLocaleString("id-ID", { minimumFractionDigits: Math.min(d, 0) || 0, maximumFractionDigits: d });
+}
+function setNisab(m){
+  nisabMode = m;
+  $("nisE").classList.toggle("active", m === "e");
+  $("nisP").classList.toggle("active", m === "p");
+}
+function zRows(el, head, rows, cls){
+  el.hidden = false;
+  el.classList.remove("err");
+  var h = '<div class="z-status ' + (cls || "") + '"></div><div class="z-rows"></div>';
+  el.innerHTML = h;
+  el.querySelector(".z-status").textContent = head;
+  var box = el.querySelector(".z-rows");
+  rows.forEach(function(r){
+    var d = document.createElement("div");
+    d.className = "z-row";
+    var s = document.createElement("span"); s.textContent = r[0];
+    var b = document.createElement("b"); b.textContent = r[1];
+    d.appendChild(s); d.appendChild(b);
+    box.appendChild(d);
+  });
+}
+function calcZMal(){
+  var hargaE = num("zmHargaE"), hargaP = num("zmHargaP");
+  var emasG  = num("zmEmas") * (parseFloat($("zmEmasU").value) || 1);
+  var perakG = num("zmPerak") * (parseFloat($("zmPerakU").value) || 1);
+  var el = $("resZMal");
+  if ((nisabMode === "e" && hargaE <= 0) || (nisabMode === "p" && hargaP <= 0)){
+    el.hidden = false;
+    el.classList.add("err");
+    el.innerHTML = "";
+    var w = document.createElement("div");
+    w.className = "r-big";
+    w.textContent = "Isi dulu harga " + (nisabMode === "e" ? "emas" : "perak") + " per gram sebagai dasar nisab.";
+    el.appendChild(w);
+    return;
+  }
+  var hartaEmas = emasG * hargaE, hartaPerak = perakG * hargaP;
+  var total = num("zmKas") + num("zmDagang") + hartaEmas + hartaPerak + num("zmPiutang") - num("zmHutang");
+  if (total < 0) total = 0;
+  var nisab = (nisabMode === "e") ? 85 * hargaE : 595 * hargaP;
+  var nisabTxt = (nisabMode === "e")
+    ? "85 g emas (20 dinar) = 0,085 kg"
+    : "595 g perak (200 dirham) = 0,595 kg";
+  var wajib = total >= nisab && total > 0;
+  var zakat = total * 0.025;
+  var rows = [
+    ["Total harta bersih", fmtRp(total)],
+    ["Nisab — " + nisabTxt, fmtRp(nisab)]
+  ];
+  if (hargaE > 0) rows.push(["Setara dalam emas", fmtNum(total / hargaE, 1) + " gram emas"]);
+  if (emasG > 0)  rows.push(["Emas milik", fmtNum(emasG, 1) + " g = " + fmtRp(hartaEmas)]);
+  if (perakG > 0) rows.push(["Perak milik", fmtNum(perakG, 1) + " g = " + fmtRp(hartaPerak)]);
+  if (wajib){
+    rows.push(["Zakat 2,5% dalam rupiah", fmtRp(zakat)]);
+    if (hargaE > 0) rows.push(["Zakat 2,5% dalam emas", fmtNum(zakat / hargaE, 1) + " gram emas"]);
+    rows.push(["Kadar & waktu", "1/40 = 2,5% • haul 1 tahun Hijriah"]);
+    zRows(el, "Wajib zakat — tunaikan 2,5% harta", rows, "wajib");
+  } else {
+    rows.push(["Selisih menuju nisab", fmtRp(nisab - total)]);
+    rows.push(["Ketentuan", "Zakat menjadi wajib bila nisab terlampaui"]);
+    zRows(el, "Belum mencapai nisab", rows, "belum");
+  }
+}
+function calcZFit(){
+  var el = $("resZFit");
+  var jiwa = Math.floor(num("zfJiwa"));
+  if (jiwa < 1){
+    el.hidden = false;
+    el.classList.add("err");
+    el.innerHTML = "";
+    var w = document.createElement("div");
+    w.className = "r-big";
+    w.textContent = "Isi jumlah jiwa minimal 1.";
+    el.appendChild(w);
+    return;
+  }
+  var harga = num("zfHarga");
+  var kg = jiwa * 2.5, gram = kg * 1000, liter = jiwa * 3.1;
+  var rows = [
+    ["Jumlah jiwa", jiwa + " orang"],
+    ["Total makanan pokok", fmtNum(kg, 1) + " kg = " + fmtNum(gram, 0) + " gram"],
+    ["Setara volume", "≈ " + fmtNum(liter, 1) + " liter (1 sha' ≈ 3,1 L)"],
+    ["Rincian per jiwa", "2,5 kg • 2.500 gram • ≈ 3,1 liter"]
+  ];
+  if (harga > 0) rows.push(["Jika diganti uang", fmtRp(kg * harga) + " (@" + fmtRp(harga) + "/kg)"]);
+  rows.push(["Waktu penunaian", "Sebelum khutbah Idulfitri, kepada 8 asnaf"]);
+  zRows(el, jiwa + " jiwa — zakat " + fmtNum(kg, 1) + " kg makanan pokok", rows, "wajib");
+}
+
+/* ================= Hisab wukuf & penentuan hilal (metode hisab sederhana) ================= */
+var RAD = Math.PI / 180;
+function n360(x){ x = x % 360; return x < 0 ? x + 360 : x; }
+function n180(x){ x = n360(x); return x > 180 ? x - 360 : x; }
+function sunPos(jd){
+  var n = jd - 2451545.0;
+  var L = n360(280.460 + 0.9856474 * n);
+  var g = (357.528 + 0.9856003 * n) * RAD;
+  var lam = n360(L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g));
+  var eps = (23.439 - 0.0000004 * n) * RAD;
+  var lr = lam * RAD;
+  var ra = Math.atan2(Math.cos(eps) * Math.sin(lr), Math.cos(lr)) / RAD;
+  var dec = Math.asin(Math.sin(eps) * Math.sin(lr)) / RAD;
+  return { ra: n360(ra), dec: dec, lam: lam };
+}
+function moonPos(jd){
+  var d = jd - 2451545.0;
+  var Lp = n360(218.3164477 + 13.17639648 * d);   /* bujur rata-rata bulan */
+  var D  = (297.8501921 + 12.19074912 * d) * RAD; /* elongasi rata-rata */
+  var M  = (357.5291092 + 0.98560028 * d) * RAD;  /* anomali rata-rata matahari */
+  var Mp = (134.9633964 + 13.06499295 * d) * RAD; /* anomali rata-rata bulan */
+  var F  = (93.2720950 + 13.22935024 * d) * RAD;  /* argumen lintang */
+  var lam = Lp
+    + 6.288774 * Math.sin(Mp)
+    + 1.274027 * Math.sin(2 * D - Mp)
+    + 0.658314 * Math.sin(2 * D)
+    + 0.213618 * Math.sin(2 * Mp)
+    - 0.185116 * Math.sin(M)
+    - 0.114332 * Math.sin(2 * F)
+    + 0.058793 * Math.sin(2 * D - 2 * Mp)
+    + 0.057066 * Math.sin(2 * D - Mp - M)
+    + 0.053322 * Math.sin(2 * D + Mp)
+    + 0.045758 * Math.sin(2 * D - M);
+  var beta = 5.128122 * Math.sin(F)
+    + 0.280602 * Math.sin(Mp + F)
+    + 0.277693 * Math.sin(Mp - F)
+    + 0.173237 * Math.sin(2 * D - F)
+    + 0.055413 * Math.sin(2 * D - Mp + F);
+  var dist = 385000.56
+    - 20905.355 * Math.cos(Mp)
+    - 3699.111 * Math.cos(2 * D - Mp)
+    - 2955.968 * Math.cos(2 * D)
+    - 569.925 * Math.cos(2 * Mp);
+  lam = n360(lam);
+  var eps = (23.4393 - 0.0000004 * d) * RAD;
+  var lr = lam * RAD, br = beta * RAD;
+  var x = Math.cos(br) * Math.cos(lr);
+  var y = Math.cos(eps) * Math.cos(br) * Math.sin(lr) - Math.sin(eps) * Math.sin(br);
+  var z = Math.sin(eps) * Math.cos(br) * Math.sin(lr) + Math.cos(eps) * Math.sin(br);
+  var ra = n360(Math.atan2(y, x) / RAD);
+  var dec = Math.asin(Math.max(-1, Math.min(1, z))) / RAD;
+  return { ra: ra, dec: dec, lam: lam, beta: beta, dist: dist };
+}
+function altaz(jd, ra, dec, lat, lon){
+  var d = jd - 2451545.0;
+  var gmst = n360(280.46061837 + 360.98564736629 * d);
+  var H = n360(gmst + lon - ra) * RAD;
+  var phi = lat * RAD, de = dec * RAD;
+  var sa = Math.sin(phi) * Math.sin(de) + Math.cos(phi) * Math.cos(de) * Math.cos(H);
+  sa = Math.max(-1, Math.min(1, sa));
+  var alt = Math.asin(sa) / RAD;
+  var az = 0;
+  if (Math.cos(alt * RAD) > 1e-8){
+    var ca = (Math.sin(de) - Math.sin(phi) * sa) / (Math.cos(phi) * Math.cos(alt * RAD));
+    ca = Math.max(-1, Math.min(1, ca));
+    az = Math.acos(ca) / RAD;
+    if (Math.sin(H) > 0) az = 360 - az;
+  }
+  return { alt: alt, az: az };
+}
+function sunAltGeo(jd, lat, lon){ var s = sunPos(jd); return altaz(jd, s.ra, s.dec, lat, lon); }
+function moonAltGeo(jd, lat, lon){ var m = moonPos(jd); return altaz(jd, m.ra, m.dec, lat, lon); }
+function moonPar(jd){ return Math.asin(6378.14 / moonPos(jd).dist) / RAD; }
+function elongDeg(jd){
+  var s = sunPos(jd), m = moonPos(jd);
+  var dl = (m.lam - s.lam) * RAD, b = m.beta * RAD;
+  return Math.acos(Math.max(-1, Math.min(1, Math.cos(b) * Math.cos(dl)))) / RAD;
+}
+function jdOfLocal(y, mo, d, h, mi){ return new Date(y, mo, d, h, mi, 0).getTime() / 86400000 + 2440587.5; }
+function jdToDate(jd){ return new Date(Math.round((jd - 2440587.5) * 86400000)); }
+function fmtDT(jd){
+  var d = jdToDate(jd);
+  return HARI[d.getDay()] + ", " + d.getDate() + " " + BULAN[d.getMonth()] + " " + d.getFullYear() + " • " + p2(d.getHours()) + "." + p2(d.getMinutes());
+}
+function fDeg(x, d){
+  var dd = (d === undefined) ? 1 : d;
+  return (x < 0 ? "-" : "") + fmtNum(Math.abs(x), dd) + "°";
+}
+function secant(f, a, b){
+  var x0 = a, y0 = f(a), x1 = b, y1 = f(b);
+  for (var i = 0; i < 40; i++){
+    if (Math.abs(y1 - y0) < 1e-12) break;
+    var x2 = x1 - y1 * (x1 - x0) / (y1 - y0);
+    x0 = x1; y0 = y1; x1 = x2; y1 = f(x2);
+    if (Math.abs(y1) < 1e-7) break;
+  }
+  return x1;
+}
+function findSunset(jdNoonSolar, lat, lon){
+  var f = function(jd){ return sunAltGeo(jd, lat, lon).alt + 0.833; };
+  var step = 0.004, prevT = jdNoonSolar + 0.02, prevF = f(prevT);
+  if (prevF < 0) return null;
+  for (var t = prevT + step; t <= jdNoonSolar + 0.42; t += step){
+    var cf = f(t);
+    if (cf < 0) return secant(f, prevT, t);
+    prevT = t; prevF = cf;
+  }
+  return null;
+}
+function findMoonset(jdFrom, lat, lon){
+  var f = function(jd){
+    var m = moonPos(jd), a = altaz(jd, m.ra, m.dec, lat, lon);
+    var p = Math.asin(6378.14 / m.dist) / RAD;
+    return a.alt - (0.7275 * p - 0.5667);
+  };
+  var step = 0.005;
+  if (f(jdFrom) <= 0){
+    for (var t = jdFrom - step; t >= jdFrom - 0.8; t -= step){
+      if (f(t) > 0) return secant(f, t, t + step);
+    }
+    return null;
+  }
+  for (var t2 = jdFrom + step; t2 <= jdFrom + 0.8; t2 += step){
+    if (f(t2) <= 0) return secant(f, t2 - step, t2);
+  }
+  return null;
+}
+function findIjtimaq(jdGuess){
+  /* Cari konjungsi (ijtimaq) terakhir sebelum jdGuess.
+     Scan mundur mencari pasangan tanda g: lama <= 0 -> baru > 0 (lewat nol = ijtimaq),
+     lalu diperketat dengan biseksi. Aman dari lompatan satu sinodis. */
+  var g = function(jd){ return n180(moonPos(jd).lam - sunPos(jd).lam); };
+  var step = 0.5;
+  var newer = jdGuess, gvnew = g(newer);
+  for (var t = jdGuess - step; t >= jdGuess - 31.5; t -= step){
+    var gv = g(t);
+    if (gv <= 0 && gvnew > 0){
+      var lo = t, hi = newer;
+      for (var i = 0; i < 64; i++){
+        var mid = (lo + hi) / 2, gm = g(mid);
+        if (gm <= 0) lo = mid; else hi = mid;
+        if (hi - lo < 1e-7) break;
+      }
+      return (lo + hi) / 2;
+    }
+    newer = t; gvnew = gv;
+  }
+  return jdGuess - 29.53; /* fallback */
+}
+function faseName(e){
+  if (e < 1) return "Bulan baru (ijtimaq)";
+  if (e < 15) return "Hilal — sabit sangat tipis";
+  if (e < 60) return "Sabit muda";
+  if (e < 88) return "Sabit lebar";
+  if (e < 93) return "Separuh (kuartal pertama)";
+  if (e < 150) return "Cembung (gibbous)";
+  if (e < 179) return "Cembung mendekati purnama";
+  return "Purnama";
+}
+function moonPathD(r, elong){
+  if (elong <= 0.4) return "";
+  if (elong >= 179.5) return "M 0," + (-r) + " A " + r + "," + r + " 0 1 1 0," + r + " A " + r + "," + r + " 0 1 1 0," + (-r) + " Z";
+  var e = elong * RAD;
+  var rx = Math.abs(Math.cos(e) * r);
+  var sweep = elong < 90 ? 1 : 0;
+  return "M 0," + (-r) + " A " + r + "," + r + " 0 0 1 0," + r + " A " + rx.toFixed(2) + "," + r + " 0 0 " + sweep + " 0," + (-r) + " Z";
+}
+function moonSVG(r, elong){
+  var v = -(r + 12);
+  var s = '<svg viewBox="' + v + " " + v + " " + (2 * r + 24) + " " + (2 * r + 24) + '">';
+  s += '<circle r="' + r + '" fill="#2a3340" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>';
+  var d = moonPathD(r, elong);
+  if (d) s += '<path d="' + d + '" fill="#f7f1dd"/>';
+  s += "</svg>";
+  return s;
+}
+
+var LOKASI = [
+  { n: "Makassar", la: -5.1477, lo: 119.4327 },
+  { n: "Jakarta", la: -6.2088, lo: 106.8456 },
+  { n: "Bandung", la: -6.9175, lo: 107.6191 },
+  { n: "Semarang", la: -6.9667, lo: 110.4167 },
+  { n: "Yogyakarta", la: -7.7956, lo: 110.3695 },
+  { n: "Surabaya", la: -7.2575, lo: 112.7521 },
+  { n: "Medan", la: 3.5952, lo: 98.6722 },
+  { n: "Pontianak", la: -0.0263, lo: 109.3425 },
+  { n: "Denpasar", la: -8.6705, lo: 115.2126 },
+  { n: "Mataram", la: -8.5833, lo: 116.1167 },
+  { n: "Jayapura", la: -2.5916, lo: 140.6690 },
+  { n: "Makkah", la: 21.4225, lo: 39.8262 },
+  { n: "— Koordinat manual —", manual: true }
+];
+var PHASES = [
+  { e: 2, l: "Bulan baru" },
+  { e: 8, l: "Hilal" },
+  { e: 35, l: "Sabit" },
+  { e: 90, l: "Separuh" },
+  { e: 135, l: "Cembung" },
+  { e: 180, l: "Purnama" }
+];
+var SKY = { W: 380, HOR: 174, PPD: 6.2, AZ0: 238, AZ1: 302 };
+function skyX(az){
+  var x = (az - SKY.AZ0) / (SKY.AZ1 - SKY.AZ0) * SKY.W;
+  return Math.max(18, Math.min(SKY.W - 18, x));
+}
+function hlError(msg){
+  $("hlResult").hidden = true;
+  $("hlMonth").classList.add("hl-err");
+  $("hlMonth").textContent = msg;
+}
+function arahAz(az){
+  if (az >= 240 && az <= 300) return "barat";
+  if (az > 180 && az < 240) return "barat daya";
+  if (az > 300) return "barat laut";
+  return "bukan arah barat";
+}
+function drawSky(r){
+  var NS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, txt){
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (txt !== undefined) e.textContent = txt;
+    return e;
+  }
+  var g = $("skyGuides");
+  g.innerHTML = "";
+  [5, 10, 15, 20].forEach(function(a){
+    var y = SKY.HOR - a * SKY.PPD;
+    g.appendChild(el("line", { x1: 0, y1: y, x2: SKY.W, y2: y, stroke: "rgba(255,255,255,.12)", "stroke-dasharray": "3 6" }));
+    g.appendChild(el("text", { x: 6, y: y - 4, fill: "rgba(255,255,255,.4)", "font-size": "9" }, a + "°"));
+  });
+  var sx = skyX(r.sunAz), sy = SKY.HOR + 0.833 * SKY.PPD;
+  var mx = skyX(r.mAz), my = Math.max(24, SKY.HOR - r.mTopo * SKY.PPD);
+  var cx = (sx + mx) / 2, cy = Math.min(sy - 14, my + 14) - Math.max(34, Math.abs(mx - sx) * 0.3);
+  $("skyArc").setAttribute("d", "M" + sx + "," + (sy - 14) + " Q" + cx + "," + cy + " " + mx + "," + (my + 14));
+  var lx = 0.25 * sx + 0.5 * cx + 0.25 * mx;
+  var ly = 0.25 * (sy - 14) + 0.5 * cy + 0.25 * (my + 14);
+  var arcT = $("skyArcT");
+  arcT.setAttribute("x", lx);
+  arcT.setAttribute("y", Math.min(ly - 8, SKY.HOR - 34));
+  arcT.textContent = "Busur " + fmtNum(r.elong, 1) + "°";
+  $("skySun").setAttribute("transform", "translate(" + sx + "," + sy + ")");
+  var st = $("sunT");
+  st.setAttribute("x", sx + (mx >= sx ? -32 : 32));
+  st.setAttribute("y", SKY.HOR - 12);
+  var mg = $("skyMoon");
+  mg.setAttribute("transform", "translate(" + mx + "," + my + ") rotate(" + (Math.atan2(sy - my, sx - mx) / RAD) + ")");
+  $("skyMoonP").setAttribute("d", moonPathD(11, r.elong));
+  var mt = $("moonT");
+  if (r.mTopo < 0){
+    mt.setAttribute("x", mx + (mx >= sx ? 34 : -34));
+    mt.setAttribute("y", SKY.HOR - 34);
+    mt.textContent = "Bulan di bawah ufuk";
+  } else {
+    mt.setAttribute("x", mx);
+    mt.setAttribute("y", Math.max(14, my - 20));
+    mt.textContent = "Bulan " + fDeg(r.mTopo);
+  }
+}
+function drawMoonMain(elong, ageH){
+  var s = $("moonSvg");
+  var d = moonPathD(50, elong);
+  var h = '<circle r="50" fill="#2a3340" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>';
+  if (d) h += '<path d="' + d + '" fill="#f7f1dd"/>';
+  s.innerHTML = h;
+  var pct = (1 - Math.cos(elong * RAD)) / 2 * 100;
+  var mi = $("moonInfo");
+  mi.innerHTML = "";
+  var b = document.createElement("b");
+  b.textContent = faseName(elong);
+  var p1 = document.createElement("div");
+  p1.textContent = "Bagian terang ≈ " + fmtNum(pct, 1) + "% • umur " + fmtNum(ageH, 1) + " jam saat matahari terbenam";
+  var p2d = document.createElement("div");
+  p2d.textContent = elong < 15
+    ? "Inilah hilal — sabit sangat tipis yang dicari pada petang tanggal 29, tampak rendah di langit barat tak lama setelah matahari terbenam."
+    : (elong < 90
+      ? "Bulan sabit muda: sisi terang selalu menghadap ke arah matahari yang berada di ufuk barat."
+      : "Penerangan bulan semakin luas; pada konteks penentuan hilal, yang dinilai adalah sabit muda beberapa jam setelah ijtimaq.");
+  mi.appendChild(b); mi.appendChild(p1); mi.appendChild(p2d);
+}
+function renderMoonRow(){
+  var box = $("moonRow");
+  box.innerHTML = "";
+  PHASES.forEach(function(p, ix){
+    var c = document.createElement("div");
+    c.className = "mphase";
+    c.id = "mph" + ix;
+    c.innerHTML = moonSVG(26, p.e);
+    var sp = document.createElement("span");
+    sp.textContent = p.l;
+    c.appendChild(sp);
+    box.appendChild(c);
+  });
+}
+function calcHilal(){
+  var dv = $("hlDate").value;
+  if (!dv){ hlError("Pilih tanggal terlebih dahulu."); return; }
+  var t = dv.split("-");
+  var Y = +t[0], Mo = +t[1] - 1, Da = +t[2];
+  if (!Y || isNaN(new Date(Y, Mo, Da).getTime())){ hlError("Tanggal tidak valid."); return; }
+  var loc = LOKASI[+$("hlLoc").value] || LOKASI[0];
+  var lat = loc.manual ? parseFloat($("hlLat").value) : loc.la;
+  var lon = loc.manual ? parseFloat($("hlLon").value) : loc.lo;
+  if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 88.5){ hlError("Koordinat lokasi tidak valid."); return; }
+
+  /* Titik kulminasi matahari di lokasi (jam perangkat) = 12 - bujur/15 + offset zona perangkat.
+     Pemindaian terbenam dilakukan relatif terhadap titik ini agar valid untuk
+     kombinasi lokasi & zona waktu perangkat apa pun. */
+  var T = -new Date(Y, Mo, Da, 12, 0).getTimezoneOffset() / 60;
+  var solarNoonH = 12 - lon / 15 + T;
+  var jdNoon = jdOfLocal(Y, Mo, Da, solarNoonH, 0);
+  var sunset = findSunset(jdNoon, lat, lon);
+  if (!sunset){ hlError("Matahari tidak terbenam pada tanggal/lokasi ini — periksa kembali."); return; }
+
+  var sunAA = sunAltGeo(sunset, lat, lon);
+  var mAA = moonAltGeo(sunset, lat, lon);
+  var par = moonPar(sunset);
+  var mTopo = mAA.alt - par * Math.cos(mAA.alt * RAD);
+  var elong = elongDeg(sunset);
+  var ijt = findIjtimaq(sunset);
+  var ageH = (sunset - ijt) * 24;
+  var moonset = findMoonset(sunset, lat, lon);
+  var lagMin = (moonset !== null) ? (moonset - sunset) * 1440 : null;
+  var ilm = (1 - Math.cos(elong * RAD)) / 2;
+
+  var dayDate = new Date(Y, Mo, Da);
+  var h = getHijri(dayDate);
+  var nm = h.m % 12, ny = (h.m === 12) ? h.y + 1 : h.y;
+  var okM = mTopo >= 3 && elong >= 6.4;
+  var okO = mTopo >= 5 && elong >= 8;
+  var okW = lagMin !== null && lagMin > 0 && mTopo >= 3;
+
+  var vd = $("hlVerdict");
+  vd.classList.toggle("ok", okM);
+  vd.classList.toggle("no", !okM);
+  $("hlBadge").textContent = okM ? "TERPENUHI" : "BELUM";
+  var isWukuf = (h.d === 29 || h.d === 30);
+  if (isWukuf){
+    var startDt = addDays(dayDate, okM ? 1 : 2);
+    $("hlVerdictTxt").textContent = okM
+      ? "Imkan rukyat terpenuhi (MABIMS) — hilal berpotensi terlihat malam ini ke arah barat; 1 " + HIJRI_MONTHS[nm].n + " " + ny + " H diperkirakan " + fmtGregFull(startDt) + " M."
+      : "Kriteria belum terpenuhi — hilal belum dapat ditetapkan malam ini; 29 " + HIJRI_MONTHS[h.m - 1].n + " diampuni 30 hari, 1 " + HIJRI_MONTHS[nm].n + " " + ny + " H diperkirakan " + fmtGregFull(startDt) + " M.";
+  } else {
+    $("hlVerdictTxt").textContent = okM
+      ? "Imkan rukyat terpenuhi (MABIMS) pada malam ini di lokasi ini. Namun tanggal pilihan bukan malam 29/30 sehingga belum menjadi konteks penentuan awal bulan — gunakan tombol \"Isi tgl 29 bulan ini\"."
+      : "Kriteria belum terpenuhi pada malam ini di lokasi ini (bukan malam 29/30). Pengamatan penentuan awal bulan lazim dilakukan petang tanggal 29 — gunakan tombol \"Isi tgl 29 bulan ini\".";
+  }
+
+  var stats = [
+    ["Ijtimaq (konjungsi)", fmtDT(ijt)],
+    ["Umur bulan di maghrib", fmtNum(ageH, 1) + " jam"],
+    ["Matahari terbenam", p2(jdToDate(sunset).getHours()) + "." + p2(jdToDate(sunset).getMinutes())],
+    ["Wukuf — bulan terbenam", moonset ? fmtDT(moonset) : "sebelum matahari"],
+    ["Selisih terbenam", lagMin === null ? "—" : (lagMin > 0 ? "+" : "") + fmtNum(lagMin, 0) + " menit"],
+    ["Tinggi bulan (toposentris)", fDeg(mTopo)],
+    ["Busur / elongasi", fDeg(elong)],
+    ["Azimut bulan", fmtNum(mAA.az, 0) + "° (" + arahAz(mAA.az) + ")"],
+    ["Cahaya terang", fmtNum(ilm * 100, 1) + "%"],
+    ["Bentuk bulan", faseName(elong)]
+  ];
+  var hs = $("hlStats");
+  hs.innerHTML = "";
+  stats.forEach(function(s){
+    var d = document.createElement("div");
+    d.className = "stat";
+    var sp = document.createElement("span"); sp.textContent = s[0];
+    var b = document.createElement("b"); b.textContent = s[1];
+    d.appendChild(sp); d.appendChild(b);
+    hs.appendChild(d);
+  });
+
+  var hc = $("hlCrit");
+  hc.innerHTML = "";
+  function chip(label, ok, val){
+    var c = document.createElement("span");
+    c.className = "cchip " + (ok ? "ok" : "no");
+    var i = document.createElement("i");
+    i.textContent = ok ? "✓" : "✗";
+    c.appendChild(i);
+    c.appendChild(document.createTextNode(label + " — " + val));
+    hc.appendChild(c);
+  }
+  chip("Tinggi ≥ 3° (MABIMS)", mTopo >= 3, fDeg(mTopo));
+  chip("Busur ≥ 6,4° (MABIMS)", elong >= 6.4, fDeg(elong));
+  chip("OIC: 5° / 8°", okO, fDeg(mTopo) + " / " + fDeg(elong));
+  chip("Wukuf: bulan terbenam setelah matahari", okW, lagMin === null ? "tidak terdata" : (lagMin > 0 ? "+" : "") + fmtNum(lagMin, 0) + " menit");
+
+  drawSky({ sunAz: sunAA.az, mAz: mAA.az, mTopo: mTopo, elong: elong });
+  drawMoonMain(elong, ageH);
+  var best = 0, bd = 1e9;
+  PHASES.forEach(function(p, ix){
+    var d2 = Math.abs(p.e - elong);
+    if (d2 < bd){ bd = d2; best = ix; }
+  });
+  for (var i2 = 0; i2 < PHASES.length; i2++){
+    var mp = $("mph" + i2);
+    if (mp) mp.classList.toggle("active", i2 === best);
+  }
+
+  $("hlMonth").classList.remove("hl-err");
+  $("hlMonth").textContent = "Konteks: " + fmtGregFull(dayDate) + " M • " + fmtHijriFull(h) + " — pengamatan hilal lazim dilakukan petang tanggal 29, menghadap ke barat setelah matahari terbenam.";
+  $("hlResult").hidden = false;
+}
+function setDay29(){
+  var h = getHijri(new Date());
+  var g = hijriToGreg(h.y, h.m, 29);
+  if (!g || g < midOf(new Date())){
+    var ny2 = (h.m === 12) ? h.y + 1 : h.y, nm2 = (h.m === 12) ? 1 : h.m + 1;
+    g = hijriToGreg(ny2, nm2, 29);
+  }
+  if (g) $("hlDate").value = toISO(g);
+  calcHilal();
+}
+
+/* ================= Inisialisasi ================= */
+function toISO(dt){ return dt.getFullYear() + "-" + p2(dt.getMonth() + 1) + "-" + p2(dt.getDate()); }
+
+function init(){
+  var now = new Date();
+  todayMid = midOf(now);
+  var h = getHijri(now);
+
+  /* navigasi tab */
+  var btns = document.querySelectorAll(".bottomnav button");
+  for (var i = 0; i < btns.length; i++){
+    btns[i].addEventListener("click", function(){ showView(this.getAttribute("data-view")); });
+  }
+  $("teaserRam").addEventListener("click", function(){ showView("ramadhan"); });
+
+  /* hero & jam */
+  updateHero(); tick();
+  setInterval(tick, 1000);
+  setInterval(updateHero, 30000);
+  $("fYear").textContent = "Diperbarui otomatis • " + h.y + " H / " + now.getFullYear() + " M";
+
+  /* hitung mundur */
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+  renderYearProgress();
+  renderCdList(3, "miniEvents", false);
+  renderCdList(8, "cdList", true);
+
+  /* kalender */
+  gy = now.getFullYear(); gm = now.getMonth();
+  hy = h.y; hm = h.m;
+  $("segG").addEventListener("click", function(){ switchMode("g"); });
+  $("segH").addEventListener("click", function(){ switchMode("h"); });
+  $("prevBtn").addEventListener("click", function(){ shift(-1); });
+  $("nextBtn").addEventListener("click", function(){ shift(1); });
+  $("todayBtn").addEventListener("click", goToday);
+  render();
+
+  /* konverter Masehi -> Hijriah */
+  $("gInput").value = toISO(now);
+  $("gInput").addEventListener("change", convG);
+  $("btnG").addEventListener("click", convG);
+  convG();
+
+  /* konverter Hijriah -> Masehi */
+  var selD = $("hDay");
+  for (var k = 1; k <= 30; k++){
+    var o = document.createElement("option");
+    o.value = k; o.textContent = k;
+    selD.appendChild(o);
+  }
+  var selM = $("hMonth");
+  HIJRI_MONTHS.forEach(function(mo, ix){
+    var o2 = document.createElement("option");
+    o2.value = ix + 1; o2.textContent = mo.n;
+    selM.appendChild(o2);
+  });
+  selD.value = String(h.d);
+  selM.value = String(h.m);
+  $("hYear").value = String(h.y);
+  $("hDay").addEventListener("change", convH);
+  $("hMonth").addEventListener("change", convH);
+  $("hYear").addEventListener("change", convH);
+  $("btnH").addEventListener("click", convH);
+  convH();
+
+  /* lainnya */
+  renderTL();
+
+  /* zakat */
+  $("nisE").addEventListener("click", function(){ setNisab("e"); });
+  $("nisP").addEventListener("click", function(){ setNisab("p"); });
+  $("btnZMal").addEventListener("click", calcZMal);
+  $("btnZFit").addEventListener("click", calcZFit);
+
+  /* hilal */
+  var selL = $("hlLoc");
+  LOKASI.forEach(function(l, ix){
+    var o = document.createElement("option");
+    o.value = ix;
+    o.textContent = l.n;
+    selL.appendChild(o);
+  });
+  $("hlDate").value = toISO(now);
+  $("hlLoc").addEventListener("change", function(){
+    $("hlManual").hidden = !LOKASI[+$("hlLoc").value].manual;
+  });
+  $("btnHilal").addEventListener("click", calcHilal);
+  $("btnHl29").addEventListener("click", setDay29);
+  renderMoonRow();
+  calcHilal();
+}
+
+document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
